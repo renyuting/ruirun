@@ -1,0 +1,301 @@
+<!doctype html>
+<html>
+<head>
+<title>睿好玩-休闲农家乐-享你所想</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" type="text/css" href="../../css/amazeui.swiper.min.css">
+<link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="../../css/shop.css" type="text/css" media="screen" />
+
+<script src="../../js/jquery-1.11.1.min.js"></script>
+<script src="../../js/init.js"></script>
+</head>
+<body>
+<div class="page">
+    <!-- 首页头部 -->
+    <header class="index-header">
+        <h1 class="index-logo">
+            <img src="../../images/demo/logo.png">
+        </h1>
+        <h2 class="index-storename" @click="showDetial=!showDetial">
+            <s class="ico_store"></s>
+            武汉睿好玩农家乐
+            <s class="ico_arrow" :class="{'show':showDetial}"></s>
+        </h2>
+    </header>
+    <!-- 首页头部 end -->
+
+    <!-- 店铺信息  -->
+    <div class='store-detial cells nomargin' :class="{'show':showDetial}">
+        <section class="store-content">
+            <a class='cell cell-access' href="evaluation.html">
+                <div class="cell-hd">
+                    <img src='../../images/star_ico.png'/>
+                </div>
+                <div class="cell-bd">
+                    <span class="star"><b style="width:100%"></b></span>
+                </div>
+                <div class="cell-ft">
+                </div>
+            </a>
+            <div class='cell cell-access'>
+                <div class="cell-hd">
+                    <img src='../../images/area.png'/>
+                </div>
+                <div class="cell-bd">
+                    湖北省武汉市洪山区光谷大道金融港
+                </div>
+                <div class="cell-ft">
+                </div>
+            </div>
+            <a class='cell cell-access' href="tel:13209866561">
+                <div class="cell-hd">
+                    <img src='../../images/index_phone.png'/>
+                </div>
+                <div class="cell-bd">
+                     13209866561
+                </div>
+                <div class="cell-ft">
+                </div>
+            </a>
+        </section>
+        <div class="mask" @click="showDetial=false"></div>
+    </div><!-- 店铺信息 end -->
+
+    <!-- 首页滚动广告  -->
+    <section class="store-swiper">
+        <div class="swiper-container store-banner">
+			<div class="swiper-wrapper">
+				<div class="swiper-slide">
+					<a href="javascript:void(0)">
+						<img src="../../images/demo/banner_1.jpg">
+					</a>
+				</div>
+                <div class="swiper-slide">
+                    <a href="javascript:void(0)">
+                        <img src="../../images/demo/banner_2.jpg">
+                    </a>
+                </div>
+                <div class="swiper-slide">
+                    <a href="javascript:void(0)">
+                        <img src="../../images/demo/banner_3.jpg">
+                    </a>
+                </div>
+                <div class="swiper-slide">
+                    <a href="javascript:void(0)">
+                        <img src="../../images/demo/banner_4.jpg">
+                    </a>
+                </div>
+			</div>
+            <!-- Add Pagination -->
+            <div class="y_qhdiv swiper-pagination"></div>
+        </div>
+    </section>
+    <!-- 首页滚动广告 end  -->
+
+    <!-- 店铺导航 -->
+    <nav class="store-nav">
+		<a href="productList.html">
+            <s><img src="../../images/nav_1.png"></s>
+            农家美食
+        </a>
+        <a href="infoList.html">
+            <s><img src="../../images/nav_2.png"></s>
+            农家住宿
+        </a>
+        <a href="productList.html">
+            <s><img src="../../images/nav_3.png"></s>
+            特色活动
+        </a>
+        <a href="##">
+            <s><img src="../../images/nav_4.png"></s>
+            在线点餐
+        </a>
+    </nav><!-- 店铺导航 end -->
+
+
+    <!-- 优惠券领取 -->
+    <ul class="index-coupon">
+        <li>
+            <span class="">￥<span class="fz34">20</span></span>
+            <p>无门槛使用</p>
+            <label class="state">领</label>
+        </li>
+        <li>  <!-- disabled 类名不可领状态 -->
+            <span class="">￥<span class="fz34">50</span></span>
+            <p>满500元使用</p>
+            <label class="state">领</label>
+        </li>
+        <li>
+            <span class="">￥<span class="fz34">100</span></span>
+            <p>满1000元使用</p>
+            <label class="state">领</label>
+        </li>
+    </ul>
+    <!-- 优惠券领取 end -->
+
+    <!-- 商户信息 -->
+    <!-- <section class="store-info">
+        <div class='cell cell-access store-title'>
+            <div class="cell-hd">
+                <img class="logo" src='../../images/demo/logo.jpg'/>
+            </div>
+            <div class="cell-bd">
+                <h1 class="store-name">武汉睿好玩农家乐</h1>
+            </div>
+            <div class="cell-ft">
+                <span class="stare"></span>
+            </div>
+        </div>
+        <div class='cell cell-access'>
+            <div class="cell-hd">
+                <img src='../../images/area.png'/>
+            </div>
+            <div class="cell-bd">
+                湖北省武汉市洪山区光谷大道金融港
+            </div>
+            <div class="cell-ft">
+            </div>
+        </div>
+        <a class='cell cell-access' href="tel:13209866561">
+            <div class="cell-hd">
+                <img src='../../images/index_phone.png'/>
+            </div>
+            <div class="cell-bd">
+                 13209866561
+            </div>
+            <div class="cell-ft">
+            </div>
+        </a>
+    </section> -->
+    <!-- 商户信息 end -->
+
+    <!-- 首页推荐图片 -->
+    <section class="index-panner">
+        <div class="index-title">
+            <h2>庄园环境</h2>
+            <a class="title-more" href="infoList.html">更多<s></s></a>
+        </div>
+        <div class="milieu-box">
+            <img src="../../images/demo/info_1.jpg">
+            <img src="../../images/demo/info_2.jpg">
+        </div>
+    </section>
+    <!-- 首页推荐图片 end -->
+
+    <!-- 首页推荐图片 -->
+    <section class="index-panner">
+        <div class="index-title">
+            <h2>农家美食</h2>
+            <a class="title-more" href="productList.html">更多<s></s></a>
+        </div>
+        <ul class="panner-list">
+            <li>
+                <img src="../../images/demo/pic_220_1.jpg">
+                <p>石斛鲜条炖鸡</p>
+            </li>
+            <li>
+                <img src="../../images/demo/pic_220_2.jpg">
+                <p>美味年糕</p>
+            </li>
+            <li>
+                <img src="../../images/demo/pic_220_3.jpg">
+                <p>土匪肉</p>
+            </li>
+            <li>
+                <img src="../../images/demo/pic_220_4.jpg">
+                <p>独家秘制烤肉串</p>
+            </li>
+        </ul>
+    </section>
+    <!-- 首页推荐图片 end -->
+
+    <!-- 首页推荐图片 -->
+    <section class="index-panner">
+        <div class="index-title">
+            <h2>特色活动</h2>
+            <a class="title-more" href="productList.html">更多<s></s></a>
+        </div>
+        <ul class="panner-list">
+            <li>
+                <img src="../../images/demo/pic_220_5.jpg">
+                <p>种植体验</p>
+            </li>
+            <li>
+                <img src="../../images/demo/pic_220_6.jpg">
+                <p>果园采摘</p>
+            </li>
+            <li>
+                <img src="../../images/demo/pic_220_7.jpg">
+                <p>广场舞</p>
+            </li>
+            <li>
+                <img src="../../images/demo/pic_220_8.jpg">
+                <p>亲子游戏</p>
+            </li>
+        </ul>
+    </section>
+    <!-- 首页推荐图片 end -->
+
+    <!-- 首页推荐图片 -->
+    <section class="index-panner">
+        <div class="index-title">
+            <h2>农家住宿</h2>
+            <a class="title-more" href="infoList.html">更多<s></s></a>
+        </div>
+        <div class="">
+            <img src="../../images/demo/pic_750_1.jpg">
+            <img src="../../images/demo/pic_750_2.jpg">
+            <img src="../../images/demo/pic_750_3.jpg">
+        </div>
+    </section>
+    <!-- 首页推荐图片 end -->
+   
+    <!-- 底部导航 -->
+    <footer class="foot_nav_fixed">
+        <nav class="foot_nav">
+            <a class="items cur" href="##"><s class="ico1"></s>首页</a>
+            <a class="items" href="reserve.html"><s class="ico2"></s>预约</a>
+            <a class="items" href="##"><s class="ico3"></s>店铺位置</a>
+            <a class="items" href="##"><s class="ico4"></s>我的</a>
+        </nav>
+    </footer>
+    <!-- 底部导航 end -->
+
+</div>
+
+<!-- 页面调用公共插件 -->
+<script src="../../js/vue.js"></script>
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/jquery.cookie.js"></script>
+
+<script src="../../js/amazeui.swiper.js"></script>
+<script type="text/javascript">
+    new Vue({
+        el:'.page',
+        data: {
+            showDetial: false,  // 是否显示商户信息下拉
+        },
+        mounted: function(){
+            //首页轮播
+            var swiper = new Swiper('.store-banner', {
+              pagination: '.y_qhdiv',
+              autoplay: 3000,//可选选项，自动滑动
+              paginationClickable: true,
+              observer: true
+            });
+        }
+    })
+    
+</script>
+</body>
+</html>
