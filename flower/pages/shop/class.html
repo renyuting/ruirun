@@ -1,0 +1,180 @@
+<!doctype html>
+<html>
+<head>
+<title>鲜花蛋糕-极速配送</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" type="text/css" href="../../css/amazeui.swiper.min.css">
+<link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="../../css/shop.css" type="text/css" media="screen" />
+
+<script src="../../js/jquery-1.11.1.min.js"></script>
+<script src="../../js/init.js"></script>
+</head>
+<body>
+<div class="page" v-cloak>
+    <section class="class-wrapper">
+        <aside class="class-nav">
+            <div class="items" :class='selectClassUuid==item.uuid?"active":""' v-for="item in classList" @click="selectClass(item.uuid)"><span>{{item.name}}</span></div>
+            <!--<div class="items"><span>永生花</span></div>
+            <div class="items"><span>礼品</span></div>
+            <div class="items"><span>礼盒</span></div>
+            <div class="items"><span>花篮</span></div>
+            <div class="items"><span>绿植花卉</span></div>-->
+        </aside>
+        <main class="class-main">
+            <div class="class-items" v-for="temp in templateList">
+                <h2 class="class-title">{{temp.attrName}}</h2>
+                <ul class="class-list clearfix">
+                    <li v-for="detail in temp.details">{{detail.value}}</li>
+                </ul>
+            </div>
+            <!--<div class="class-items">
+                <h2 class="class-title">适合对象</h2>
+                <ul class="class-list clearfix">
+                    <li>恋人</li>
+                    <li>朋友</li>
+                    <li>同事</li>
+                    <li>父母</li>
+                    <li>长辈</li>
+                    <li>老师</li>
+                    <li>领导</li>
+                    <li>客户</li>
+                    <li>病人</li>
+                </ul>
+            </div>
+            <div class="class-items">
+                <h2 class="class-title">用途</h2>
+                <ul class="class-list clearfix">
+                    <li>爱情鲜花</li>
+                    <li>生日鲜花</li>
+                    <li>友情鲜花</li>
+                    <li>周年纪念</li>
+                    <li>婚庆鲜花</li>
+                    <li>祝贺鲜花</li>
+                    <li>探病慰问</li>
+                    <li>缅怀追悼</li>
+                    <li>道歉鲜花</li>
+                    <li>祝贺鲜花</li>
+                    <li>探病慰问</li>
+                    <li>缅怀追悼</li>
+                    <li>道歉鲜花</li>
+                </ul>
+            </div>
+            <div class="class-items">
+                <h2 class="class-title">花材</h2>
+                <ul class="class-list clearfix">
+                    <li>玫瑰</li>
+                    <li>红玫瑰</li>
+                    <li>粉玫瑰</li>
+                    <li>白玫瑰</li>
+                    <li>蓝玫瑰</li>
+                    <li>香槟玫瑰</li>
+                    <li>黄玫瑰</li>
+                    <li>紫玫瑰</li>
+                    <li>康乃馨</li>
+                    <li>百合花</li>
+                    <li>向日葵</li>
+                    <li>百合+玫瑰</li>
+                    <li>百合+康乃馨</li>
+                </ul>
+            </div>-->
+        </main>
+    </section>
+
+    <!-- 底部导航 -->
+    <nav class="foot_nav">
+        <a class="items" href="index.html"><s class="ico1"></s>首页</a>
+        <a class="items cur" href="class.html"><s class="ico2"></s>分类</a>
+        <a class="items" href="cart.html"><s class="ico3"></s>购物车</a>
+        <a class="items" @click="toUserCenter"><s class="ico4"></s>我的</a>
+    </nav>
+    <!-- 底部导航 end -->
+
+</div>
+
+<!-- 页面调用公共插件 -->
+<script src="../../js/vue.js"></script>
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/jquery.cookie.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el:".page",
+        data:{
+            vendorUuid:'',//商户uuid
+            classList:[],  // 商品分类数据
+            templateList:[],//属性列表
+            selectClassUuid:'',//选择的分类uuid
+        },
+        mounted: function(){
+            var that = this;
+            // 获取商户ID及购买方式
+            var vendorUuid = obtain("vendorUuid");  // 商户uuid
+            that.vendorUuid = vendorUuid;
+
+            //获取商品分类列表
+            getProductCategory(that, that.vendorUuid);
+
+            //获取商户关联的属性
+            getTemplate(that);
+        },
+        methods: {
+            //选择分类
+            selectClass:function (classUuid) {
+                var that = this;
+                that.selectClassUuid = classUuid;
+            },
+            //跳转到用户中心，并授权
+            toUserCenter:function () {
+                if (sessionObtain('loginCustomerUuid')) {
+                    window.location.href = "../usercenter/index.html";
+                } else {
+                    window.location.href = "../login/wechat.html?page=usercenter";
+                }
+            }
+        }
+    });
+
+    // 根据商户ID获取商品分类列表
+    function getProductCategory(that, vendorUuid) {
+        // 获取商品分类信息
+        var param = {
+            "queryPage": 1,
+            "pageShow": 100,
+            "queryParams": {
+                "vendorUuid": {
+                    "operation": "EQ",
+                    "value": vendorUuid
+                }
+            },
+            "sortMap": {
+                "position": "asc"
+            }
+        };
+
+        PostData("/productcate/list", JSON.stringify(param), function (res) {
+            // 获取商品分类
+            that.classList = res.returnMessage;
+
+        });
+    }
+
+    // 根据商户ID获取商户关联的属性
+    function getTemplate(that) {
+        PostData("/flower/templaterel/getVendorTemplateRel/" + that.vendorUuid, '', function (res) {
+            that.templateList = res.returnMessage;
+
+        });
+    }
+  
+</script>
+</body>
+</html>

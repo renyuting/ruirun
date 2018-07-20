@@ -1,0 +1,159 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="css/member.css" type="text/css" media="screen"/>
+
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/init.js"></script>
+</head>
+<body>
+<header class="common-header">
+    <div class="top_fixed">
+        <a class="top_icon go_back mui-action-back" href="javascript: void(0);"></a>
+        <h1 class="top_title">员工管理</h1>
+        <a class="top_right ico_add" href="javascript: void(0);" onclick="toAdd()"></a>
+    </div>
+</header>
+<div id="main">
+    <script id="staffList" type="text/html">
+        {{each staffList as staff}}
+        <ul class="staffList">
+            <li>
+                <div class="fz30">
+                    {{staff.name}}
+                    <p class="f_999 fz24 m_mt5">
+                        <span class="items">账号:{{staff.loginName}}</span>&nbsp;&nbsp;
+                        <span class="items">电话:{{staff.mobile}}</span>
+                    </p>
+                </div>
+                <span class="y_edit">
+			        <a class="y_btn" href="javascript: void(0);" data-uuid="{{staff.uuid}}" onclick="toEdit(this)">编辑</a>
+                    {{if !staff.superManager }}
+                    <a class="y_btn" href="javascript: void(0);" data-uuid="{{staff.uuid}}" onclick="deleteStaff(this)">删除</a>
+                    {{/if}}
+		        </span>
+            </li>
+        </ul>
+        {{/each}}
+    </script>
+</div>
+
+<!-- MUI框架插件 -->
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+<script>
+    // 如果没有登录，直接跳转登录页
+    if (!sessionObtain('vendorId')) {
+        window.location.href = "Login.html";
+    }
+
+    var nowPage = 1;
+    var pageShow = 10;
+    var hasMore = true;
+    var staffList = [];
+
+    $(function () {
+        queryStaff(false);
+
+        // 上拉加载更多
+        $(window).scroll(function () {
+            var scrollTop = $(this).scrollTop();
+            var scrollHeight = $(document).height();
+            var windowHeight = $(this).height();
+            if (scrollTop + windowHeight >= scrollHeight) {
+                if (hasMore === true) {
+                    queryStaff(true);
+                }
+            }
+        });
+    });
+
+    function queryStaff(isScroll) {
+        if (isScroll) {
+            nowPage++;
+        }
+        var params = {
+            "vendorId": sessionObtain('vendorId'),
+            "page": nowPage,
+            "size": pageShow,
+            accessToken: sessionObtain('accessToken'),
+            userId: sessionObtain('userId'),
+            deviceId: sessionObtain('deviceId')
+        };
+        $.ax(
+            'userfront/vendormanager/list',
+            params,
+            true,
+            'POST',
+            'json',
+            function (res) {
+                if (res && res.returnCode === 1) {
+                    var pager = res.data.pager;
+                    if (pager.totalNum <= pager.pageShow * pager.nowPage) {
+                        hasMore = false;
+                    }
+                    staffList = staffList.concat(res.data.result);
+                    var htmlstr = template('staffList', {'staffList': staffList});
+                    $("#main").html(htmlstr);
+                }
+            }
+        );
+    }
+
+    function toAdd() {
+        window.location.href = 'staffAdd.html';
+    }
+
+    function toEdit(that) {
+        var uuid = $(that).data('uuid');
+        var staff = staffList.find(item => item.uuid === uuid);
+        session('editStaff', JSON.stringify(staff));
+        window.location.href = 'staffEdit.html';
+    }
+
+    function deleteStaff(that) {
+        var uuid = $(that).data('uuid');
+        mui.confirm(
+            '确定要删除此员工吗？',
+            '删除员工',
+            ['确认', '取消'],
+            function (e) {
+                if (e.index === 0) {
+                    $.axs(
+                        'userfront/vendormanager/delete',
+                        {
+                            deleteUuids: JSON.stringify([uuid]),
+                            accessToken: sessionObtain('accessToken'),
+                            userId: sessionObtain('userId'),
+                            deviceId: sessionObtain('deviceId')
+                        },
+                        function (result) {
+                            if (result.returnCode === 1) {
+                                mui.toast('删除员工成功');
+                                nowPage = 1;
+                                staffList = [];
+                                queryStaff(false);
+                            } else {
+                                mui.toast(result.message);
+                            }
+                        }
+                    );
+                }
+            }
+        )
+    }
+</script>
+</body>
+</html>

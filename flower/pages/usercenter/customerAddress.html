@@ -1,0 +1,174 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>收货地址</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="../../css/member.css" type="text/css" media="screen" />
+
+<script src="../../js/jquery-1.11.1.min.js"></script>
+<script src="../../js/init.js"></script>
+</head>
+<body>
+
+<div class='page' :id="'skin_'+styleClass">
+    <header class="common-header blue-style">
+        <div class="top_fixed">
+            <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+            <h1 class="top_title">收货地址</h1>
+        </div>
+    </header>
+    
+    <section class="container">
+        <div v-if="addressList.length > 0">
+            <template v-for="(item,index) in addressList">
+                <section class="address-list">
+                    <div class="cell">
+                        <div class="cell-bd">
+                            <div class="address-heading">
+                                <p class="address-name">{{item.consignee}}</p>
+                                <p class="address-desc">{{item.mobile}}</p>
+                            </div>
+                            <p class="address-text">{{item.address}}</p>
+                        </div>
+                    </div>
+                    <div class="bottomAdress">
+                        <div class="moren" :data-id='index' :data-uuid="item.uuid" @click='setMoren(item.uuid)'>
+                            <label class="raido_custom" :class="{'active' : item.defaultAddress == true}">
+                                <s class='icon'></s>
+                                默认地址
+                            </label>
+                        </div>
+                        <div class='option'>
+                            <span class="option-edit" @click="editAddress(index)">
+                                <s class="ico">
+                                    <img src='../../images/edit_40.png'>
+                                </s>
+                                编辑
+                            </span>
+                            <span class="option-edit" @click='deleteAddress(item.uuid)'>
+                                <s class="ico">
+                                    <img src='../../images/delete_40.png'>
+                                </s>
+                                删除
+                            </span>
+                        </div>
+                    </div>
+                </section>
+            </template>
+        </div>
+        <div class="norecord" v-else>
+            <img src='../../images/nodata.png'>
+            您还没有收货地址哦
+        </div>
+    </section>
+
+    <nav class="btn-area fixed">
+        <a href="customerAddressAdd.html" class="btn btn-default">
+            添加新地址
+        </a>
+    </nav>
+
+    <section class="loading" v-show="!loadingHidden">
+        <div class="ele"></div>
+    </section>
+
+
+</div>
+
+
+<!-- 页面调用公共插件 -->
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/vue.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el:".page",
+        data:{
+            styleClass:'',  // 换肤颜色
+            addressList:[],   // 收货地址列表
+            addrtype: "",  //delivery 收货地址，service服务地址
+            loadingHidden: false,  // 页面加载中状态是否隐藏
+        },
+        mounted: function(){
+            // 获取商户皮肤值
+            var styleClass = obtain("styleClass")
+            // 设置页面皮肤值
+            this.styleClass = styleClass
+
+            // 获取收货地址
+            this.queryCustomerAddress();
+        },
+        methods:{
+            // 获取收货地址
+            queryCustomerAddress:function(){
+                var that = this;
+                var customerUuid = obtain("customerUuid");
+                var param = {
+                    "queryPage": 1,
+                    "pageShow": 100,
+                    "queryParams": {
+                        "customerId": {
+                            "operation": "EQ",
+                            "value": customerUuid
+                        }
+                    }
+                };
+                PostData("/customeraddress/list", JSON.stringify(param), function (res) {
+                    console.log(res);
+                    if (1 === res.returnCode) {
+                        that.addressList = res.returnMessage
+                        that.loadingHidden = true
+                    }
+                })
+            },
+            /**
+             * 跳转编辑地址页面
+             */
+            editAddress: function (index) {
+                var that = this;
+                var editAddress = that.addressList[index];
+                session('editAddress', JSON.stringify(editAddress));
+				console.info(editAddress);
+                window.location.href = 'customerAddressEdit.html?action=edit';
+            },
+            /**
+             * 删除地址
+             */
+            deleteAddress: function (uuid) {
+                var that = this;
+                mui.confirm('确定要删除此收货地址吗？',function(e){
+                    if (e.index == 1) {
+                        PostData("/customeraddress/delete", JSON.stringify([uuid]), function (res) {
+							console.log(res);
+							mui.toast('删除收货地址成功');
+							that.queryCustomerAddress();
+						})
+                    }
+                });
+            },
+			/**
+			 * 设置为默认地址
+			 */
+            setMoren:function(uuid){
+				var that = this;
+				var customerId = obtain('customerUuid');
+				//var customerId = "4a68fe24c3cf4d1aa62344f119ed3a45";
+				PostData("/customeraddress/setDefault/"+uuid+"/"+customerId, null,function (res) {
+					console.log(res);
+					that.queryCustomerAddress();
+				})
+			}
+        }
+    });
+</script>
+</body>
+</html>

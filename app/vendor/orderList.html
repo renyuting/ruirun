@@ -1,0 +1,406 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="css/member.css" type="text/css" media="screen"/>
+
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/init.js"></script>
+</head>
+<body>
+<div id="app">
+    <header class="common-header">
+        <div class="top_fixed">
+            <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+            <h1 class="top_title">订单列表</h1>
+        </div>
+    </header>
+    <section class="common_search">
+        <input type="search" id="searchKey" placeholder="订单编号/桌号">
+    </section>
+    <nav class="common_tab">
+        <span class="items" :class="{'active':currentab==0}" @click="queryEatType(0)">全部</span>
+        <span class="items" :class="{'active':currentab==1}" @click="queryEatType(1)">堂食</span>
+        <span class="items" :class="{'active':currentab==2}" @click="queryEatType(2)">外卖</span>
+    </nav>
+    <section class="order_list" v-cloak>
+        <a v-for="(value,index) in orderList" class='items nav_view' :href="'orderDetail.html?uuid=' + value.uuid">
+            <div class='y_title'>
+                <span>
+                    <label class='label' :class="value.eatType==2?'yellow':'green'">{{value.eatTypeName}}</label>
+                    <span v-if="value.eatType==1">桌号：{{ value.tableNo }}</span>
+                </span>
+                <span class='f_999' v-if="value.state==5 || value.state==6 || value.state==7">{{ value.stateName }}</span>
+                <span class='f_color1' v-else>{{value.stateName}}-{{value.payStateName}}</span>
+            </div>
+
+            <div class='nav_view_item' v-if="value.detailList.length==1">
+                <template v-for="detail in value.detailList">
+                    <div class="item_title">
+                        <img :src="detail.productImg">
+                    </div>
+                    <div class="item_content">
+                        <div class='name'>{{detail.productName}}</div>
+                        <text class='f_color1 fz22'>￥
+                            <text class='fz28'>{{detail.productPrice|NumberFmt}}</text>
+                        </text>
+                    </div>
+                </template>
+            </div>
+            <div class='nav_view_item navigate_right' v-else>
+                <div class="item_title">
+                    <img :src="detail.productImg" v-for="(detail,index) in value.detailList" v-if="index<3">
+                </div>
+                <div class="item_content tr">
+                    <span class="f_999">{{value.detailList.length}}件商品</span>
+                </div>
+            </div>
+
+            <div class='nav_view_item'>
+                <div class="item_title f_999">
+                    {{ value.createTime }}
+                </div>
+                <div class="item_content tr fz22">
+                    合计：<span class='price'>￥<span class='fz30'>{{value.payPrice|NumberFmt}}</span></span>
+                </div>
+            </div>
+            <div class='nav_view_item'>
+                <div class="item_title">
+                    <label class='label yellow-bg'>{{value.payTypeName}}</label>
+                </div>
+                <div class="item_content item_ft">
+                    <span class='btn btn-primary' v-if="value.state!=1 && value.state!=-1 && value.payState==1" @click.stop.prevent="gathering(index,value.uuid,value.payPrice)">收款</span>
+                    <span class='btn btn-primary' v-if="value.state==1" @click.prevent="receive(index,value.uuid)">接单</span>
+                    <span class='btn btn-primary' v-if="value.eatType==1 && value.payState==2 && value.state==2" @click.prevent="finish(index,value.uuid)">完成</span>
+                    <span class='btn btn-primary' v-if="value.eatType==2 && value.state==2" @click.prevent="delivery(index,value.uuid)">派送</span>
+                    <span class='btn btn-primary' v-if="value.eatType==2 && value.state==3" @click.prevent="arrived(index,value.uuid)">送达</span>
+                    <span class='btn btn-black' v-if="value.state!=-1 && value.payState==1" @click.prevent="cancel(index,value.uuid)">取消</span>
+                </div>
+            </div>
+        </a>
+        <div class="has-more" v-show="hasMore"></div>
+    </section>
+
+    <!-- 底部导航 -->
+    <footer class="foot_nav_fixed">
+        <nav class="foot_nav">
+            <a class="items" href="index.html"><s class="ico1"></s>首页</a>
+            <a class="items cur" href="orderList.html"><s class="ico2"></s>订单</a>
+            <a class="items" href="memberManage.html"><s class="ico3"></s>会员</a>
+            <a class="items" href="storeIndex.html"><s class="ico4"></s>管理</a>
+        </nav>
+    </footer>
+    <!-- 底部导航 end -->
+
+    <!-- 输入收款金额 -->
+    <section class="modal" id="priceEdit">
+        <div class="mask" data-fullslide='miss'></div>
+        <div class="modal-content">
+            <h2 class="modal-title">收款金额</h2>
+            <nav class="item_padding ">
+                <input type="number" id="payMoney" :value="payPrice|NumberFmt" class="form-control" placeholder="请输入实际收款金额">
+                <input type="hidden" id="orderUuid">
+                <input type="hidden" id="orderIndex">
+            </nav>
+            <div class="edit_btn2 m_mt20">
+                <span class="btn btn-primary" @click="sureGathering">确认收款</span>
+            </div>
+        </div>
+    </section><!-- 输入收款金额 end -->
+</div>
+</body>
+<!-- MUI框架插件 -->
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/vue.js"></script>
+<script src="js/filter.js"></script>
+<script>
+    $(function () {
+        // 查询框绑定事件
+        $('#searchKey').on('change', function () {
+            app.search();
+        });
+    });
+    app = new Vue({
+        el: "#app",
+        data: {
+            currentab:0,
+            orderList: [],
+            nowPage: 1, //当前页码数
+            pageShow: 10,//每页显示条数
+            hasMore: true,   // 列表上拉是否可以加载更多
+            eatType:0,//类型
+            searchKey:'',//搜索关键字
+            payPrice:0.00//收款弹出框显示的收款价
+
+        },
+        created: function () {
+            this.$nextTick(function () {
+                getOrderList();
+            });
+        },
+        methods: {
+            //收款
+            gathering(index, orderUuid,payPrice) {
+                app.payPrice=payPrice;
+                // 展示收款模态框
+                fullslide_show("#priceEdit");
+                $('#orderUuid').val(orderUuid);
+                $('#orderIndex').val(index);
+            },
+            // 输入收款金额，确认收款
+            sureGathering(){
+                var methodName = "userfront/ordermain/gathering";
+                var payMoney = $('#payMoney').val();
+                var orderUuid = $('#orderUuid').val();
+                var orderIndex = $('#orderIndex').val();
+                gatheringAjax(orderIndex,orderUuid,payMoney,methodName);
+                // 关闭收款模态框
+                //fullslide_hide("#priceEdit");
+            },
+            //接单
+            receive(index, orderUuid) {
+                mui.confirm('确定接单？','提示',['确认','取消'],function (e){
+                    if(e.index==0) {
+                        var methodName = "userfront/ordermain/receive";
+                        doAjax(index, orderUuid, methodName);
+                    }
+                });
+            },
+
+            //完成
+            finish(index, orderUuid) {
+                mui.confirm('确认完成订单？','提示',['确认','取消'],function (e){
+                    if(e.index==0) {
+                        var methodName = "userfront/ordermain/finish";
+                        doAjax(index, orderUuid, methodName);
+                    }
+                });
+            },
+
+            //派送
+            delivery(index, orderUuid) {
+                mui.confirm('确定派送订单？','提示',['确认','取消'],function (e){
+                    if(e.index==0) {
+                        var methodName = "userfront/ordermain/delivery";
+                        doAjax(index, orderUuid, methodName);
+                    }
+                });
+            },
+            //送达
+            arrived(index, orderUuid) {
+                mui.confirm('确定送达订单？','提示',['确认','取消'],function (e){
+                    if(e.index==0) {
+                        var methodName = "userfront/ordermain/arrived";
+                        doAjax(index, orderUuid, methodName);
+                    }
+                });
+            },
+            //取消
+            cancel(index, orderUuid) {
+                mui.confirm('确定取消订单？','提示',['确认','取消'],function (e){
+                    if(e.index==0){
+                        var methodName = "userfront/ordermain/cancel";
+                        doAjax(index,orderUuid,methodName);
+                    }
+                });
+            },
+            queryEatType(eatType){
+                app.currentab=eatType;
+                app.hasMore=true;
+                queryByEatType(eatType);
+            },
+            //搜索
+            search(){
+                app.eatType=0;
+                app.searchKey=$("#searchKey").val();
+                getOrderList();
+            }
+        }
+    });
+
+    function queryByEatType(eatType){
+        if(1==eatType||2==eatType){
+            app.eatType=eatType;
+        }else{
+            app.eatType=0;
+        }
+        getOrderList();
+    }
+
+    // 获取订单集合
+    function getOrderList(scroll){
+        var vendorId = sessionObtain("vendorId");
+        if (scroll != "scroll") {
+            app.nowPage = 1;
+            app.orderList = [];
+        }else{
+            app.nowPage += 1;
+        }
+        var qm = {
+            "pageShow": app.pageShow,
+            "queryPage": app.nowPage,
+            "queryParams": {
+                "vendorUuid": {
+                    "operation": "EQ",
+                    "value": vendorId
+                }
+            },
+            "sortMap": {}
+        }
+        if(1==app.eatType || 2==app.eatType){
+            qm.queryParams.eatType={
+                "operation": "EQ",
+                "value": app.eatType
+            }
+        }
+        if(app.searchKey!=''){
+            qm.queryParams['entityNo#tableNo']={
+                "operation": "ORLIKE",
+                "value": app.searchKey
+            }
+        }
+        console.log(qm);
+        var methodName = "userfront/ordermain/list";
+        var params = {"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        params["qm"] = JSON.stringify(qm);
+
+        $.ajax({
+            url: window.basePath + methodName,
+            type: "POST",
+            data: params,
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                if (data && data.returnCode === 1) {
+                    var list = data.data.result;
+
+                    if(list){
+                        //如果滚动，将新数据往orderList添加
+                        var orderList = scroll == "scroll" ? app.orderList.concat(list) : list;
+                        app.orderList = orderList
+
+                        if (list.length < app.pageShow) {
+                            app.hasMore = false
+                        } else {
+                            app.hasMore = true
+                        }
+                    }else{
+                        app.hasMore = false
+                    }
+                }else{
+                    if(!isLogin(data.returnCode)) {
+                        window.location.href = 'Login.html';
+                    } else {
+                        mui.alert(data.message, '提示');
+                    }
+                }
+            }
+        });
+    }
+
+    function doAjax(index,orderUuid,methodName) {
+        var params = {
+            "accessToken":sessionObtain("accessToken"),
+            "userId":sessionObtain("userId"),
+            "deviceId":sessionObtain("deviceId"),
+            "id":orderUuid,
+            "operatorUuid":sessionObtain("userId"),
+            "operatorName":sessionObtain("loginName")
+        };
+
+        $.ajax({
+            url: window.basePath + methodName,
+            type: "POST",
+            data: params,
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                if (data && data.returnCode === 1) {
+                    mui.alert(data.message, '提示', function() {
+                        var result = data.data.result;
+                        var order = app.orderList[index];
+                        order.state = result.state;
+                        order.payState = result.payState;
+                        order.stateName = result.stateName;
+                        order.payStateName = result.payStateName;
+                    });
+                }else{
+                    if(!isLogin(data.returnCode)) {
+                        //进入登录页
+                        window.location.href = 'Login.html';
+                    } else {
+                        mui.alert(data.message, '提示');
+                    }
+                }
+            }
+        });
+    }
+
+    function gatheringAjax(index,orderUuid,payMoney,methodName) {
+        var params = {
+            "accessToken":sessionObtain("accessToken"),
+            "userId":sessionObtain("userId"),
+            "deviceId":sessionObtain("deviceId"),
+            "id":orderUuid,
+            "payMoney":parseFloat(payMoney),
+            "operatorUuid":sessionObtain("userId"),
+            "operatorName":sessionObtain("loginName")
+        };
+
+        $.ajax({
+            url: window.basePath + methodName,
+            type: "POST",
+            data: params,
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                if (data && data.returnCode === 1) {
+                    // 关闭收款模态框
+                    fullslide_hide("#priceEdit");
+                    mui.alert(data.message, '提示', function() {
+                        var result = data.data.result;
+                        var order = app.orderList[index];
+                        order.state = result.state;
+                        order.payState = result.payState;
+                        order.stateName = result.stateName;
+                        order.payStateName = result.payStateName;
+                    });
+                }else{
+                    if(!isLogin(data.returnCode)) {
+                        //进入登录页
+                        window.location.href = 'Login.html';
+                    } else {
+                        mui.alert(data.message, '提示');
+                    }
+                }
+            }
+        });
+    }
+
+    $(function(){
+        // 上拉加载更多
+        $(window).scroll(function(){
+            var scrollTop = $(this).scrollTop();
+            var scrollHeight = $(document).height();
+            var windowHeight = $(this).height();
+            if(scrollTop + windowHeight >= scrollHeight){
+                console.log("加载更多")
+                if (app.hasMore == true) {
+                    getOrderList("scroll")
+                }
+            }
+        });
+    })
+</script>
+</html>

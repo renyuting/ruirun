@@ -1,0 +1,202 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="css/mui.picker.all.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="css/global.css" type="text/css" media="screen" />
+
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/init.js"></script>
+</head>
+<body>
+<header class="common-header">
+	<div class="top_fixed">
+		<a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+        <h1 class="top_title">首页设置</h1>
+    </div>
+</header>
+
+<!-- 店铺广告设置 -->
+<nav class="nav_view m_mt30">
+	<div class="nav_view_item">
+		<span class="item_title">店铺广告图</span>
+	</div>
+	<div class="picture_list">
+		<div class="pho_boxs">
+			<div id="photoup">
+				<label onclick="goUpLoad()" class="imageHide"></label>
+			</div>
+		</div>
+		
+	</div>
+	<p class="f_ccc fz20 m_mb10 m_plr4">最多5张图片，建议尺寸690*320px，可为店铺环境，产品广告等</p>
+</nav><!-- 店铺广告设置 end -->
+
+<!-- 推荐分类设置 -->
+<nav class="nav_view m_mt30">
+	<div class="nav_view_item">
+		<span class="item_title">推荐分类</span>
+	</div>
+	<div class="nav_view_item">
+		<span class="item_title">招牌</span>
+		<div class="item_content">
+			<div class="mui-switch mui-switch-mini" id="zp_switch">
+                <div class="mui-switch-handle"></div>
+            </div>
+		</div>
+	</div>
+   <div class="nav_view_item">
+		<span class="item_title">优惠</span>
+		<div class="item_content">
+			<div class="mui-switch mui-switch-mini" id="yh_switch">
+                <div class="mui-switch-handle"></div>
+            </div>
+		</div>
+	</div>
+</nav><!-- 推荐分类设置 end -->
+
+<!--WAP浏览器使用-->
+<form id="formUpImgs" action="" method="post" enctype="multipart/form-data" onsubmit="AJAXSubmit(this); return false;" onchange="AJAXSubmit(this); return false;">
+	<input id="upImgs" type="file" multiple name="imgFile" style="display:none;">
+</form>
+
+<!-- 保存按钮 -->
+<nav class="edit_btn2">
+	<a href="javascript:save()" class="btn btn-white">保存</a>
+</nav>
+
+<!-- 图片上传 -->
+<script src="js/mui.min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/base.js"></script>
+<script src="js/wapImageUploadForOrderEvaluation.js"></script>
+
+
+<script type="text/javascript">
+	$(function(){
+		// 上传图片url
+		$("#formUpImgs").attr("action", window.upLoadPath);
+
+         //获取商户信息
+		var accessToken = sessionObtain('accessToken');
+        var userId =  sessionObtain('userId');
+		var deviceId = sessionObtain('deviceId');
+		var vendorId = sessionObtain('vendorId');
+		var methodName = "userfront/vendor/get/" + vendorId;
+	    var params = {"accessToken":accessToken,"userId":userId,"deviceId":deviceId};
+		$.ax(
+		methodName,
+		params,
+		false,
+		"post",
+		"json", 
+		function(data){
+		  if (1 == data.returnCode) {
+		      if (data.data.result.vendorBasic.showSign) {
+			     $("#zp_switch").addClass("mui-active");
+			  } else {
+			      $("#zp_switch").removeClass("mui-active");
+			  }
+			  if (data.data.result.vendorBasic.showPromotion) {
+			      $("#yh_switch").addClass("mui-active");
+			  } else {
+			      $("#yh_switch").removeClass("mui-active");
+			  }
+		      var adverts = data.data.result.vendorBasic.adverts;
+			  if (adverts.length > 0) {
+			      for (var i = 0; i < adverts.length; i++) {
+				      var htmlStr = '<p class="changan">'
+						+'<a id="previewImage" name="" >'
+						+'<img src="'+adverts[i]+'" class="uploadImg">'
+						+'</a><span class="delete" name="'+adverts[i]+'"></span><input id="imgName'+adverts[i]+'" type="hidden" value="'+adverts[i]+'" /></p>';
+						
+					 var $imgHtml = $(htmlStr);
+					 $("#photoup").append($imgHtml);
+				  }
+			  }
+			  if (adverts.length >= 5) {
+				  $(".imageHide").hide();
+			  }
+		  }
+			
+		}
+	 );
+		
+
+		
+		// 删除图片
+		$(document).on("click",".delete",function(){
+			$(this).parents(".changan").remove();
+			
+			var currentImageCount = $(this).children().find("img").length;
+			
+			if (currentImageCount < 5) {
+				$(".imageHide").show();
+			}
+		})	
+	})
+	
+	function goUpLoad(){
+	   // 获取当前图片数量
+	   var currentImageNum = $("#photoup").children().find("img").length;
+	  if (currentImageNum >= 5) {
+			$(".imageHide").hide();
+			return;
+		}
+	   return  $("#upImgs").click();
+	}
+	
+	function save() {
+	    // 获取当前图片数量
+	   var imgs = $("#photoup").children().find("img");
+	   if (imgs.length <= 0) {
+	        mui.alert("请先上传广告图", '提示');
+			return;
+	   }
+	   var showSign = document.getElementById("zp_switch").classList.contains("mui-active");
+	   var showPromotion = document.getElementById("yh_switch").classList.contains("mui-active");
+	   var advert1 = "";
+	   var advert2 = "";
+	   var advert3 = "";
+	   var advert4 = "";
+	   var advert5 = "";
+	   for(var i = 0; i<imgs.length; i++ ){
+	       if (i == 0) {
+		     advert1 = $(imgs[i]).attr("src");
+		   } else if (i == 1) {
+		     advert2 = $(imgs[i]).attr("src");
+		   } else if (i == 2) {
+		     advert3 = $(imgs[i]).attr("src");
+		   }else if(i == 3) {
+		     advert4 = $(imgs[i]).attr("src");
+		   } else if(i == 4) {
+		     advert5 = $(imgs[i]).attr("src");
+		   }
+	   }
+	   var accessToken = sessionObtain('accessToken');
+       var userId =  sessionObtain('userId');
+	   var deviceId = sessionObtain('deviceId');
+	   var vendorId = sessionObtain('vendorId');
+	   var methodName = "userfront/vendorbasic/updateIndex";
+	   var params = {"accessToken":accessToken,"userId":userId,"deviceId":deviceId,"vendorId":vendorId,"advert1":advert1,"advert2":advert2,"advert3":advert3,"advert4":advert4,"advert5":advert5,"showSign":showSign,"showPromotion":showPromotion};
+		$.ax(
+		methodName,
+		params,
+		false,
+		"post",
+		"json", 
+		function(data){
+		    mui.alert(data.message, '提示');
+		})
+	}
+</script>
+</body>
+</html>

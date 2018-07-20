@@ -1,0 +1,238 @@
+﻿<!doctype html>
+<html>
+
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="css/member.css" type="text/css" media="screen"/>
+
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/init.js"></script>
+</head>
+
+<body>
+<header class="common-header">
+    <div class="top_fixed">
+        <a class="top_icon go_back" href="storeIndex.html"></a>
+        <h1 class="top_title">商品分类列表</h1>
+        <a class="top_right f_color1" href="productCategoryAdd.html"><s class="add_radius_ico add"></s>新增商品分类</a>
+    </div>
+</header>
+<section class="common_search">
+    <input type="search" id="query" name="" placeholder="搜索商品分类">
+</section>
+<div id="main">
+    <script id="productCateList" type="text/html">
+        <ul class="nav_view product_list">
+            {{each productCateList as productCate}}
+				{{if productCate.state == true}}
+				<li class="nav_view_item">
+				{{else}}
+				<li class="nav_view_item disabled">
+				{{/if}}
+				<span class="item_title">
+					{{if productCate.image !== null && productCate.image !== ''}}
+						<img src="{{productCate.image}}"/>
+					{{else}}
+						<img src="img/pic.png"/>
+					{{/if}}
+				</span>
+				<div class="item_content">
+					<h2 class="y_name fz26">{{productCate.name}}						
+					</h2>
+					<div class="y_info">
+						<p>
+							<a class="btn btn-black" href="javascript: void(0);" data-uuid="{{productCate.uuid}}" onclick="toEdit(this)">编辑</a>
+							{{if productCate.state == true}}
+							<a class="btn btn-black" href="javascript: void(0);" data-uuid="{{productCate.uuid}}" onclick="stop(this)">停用</a>
+							{{else}}
+							<a class="btn btn-primary" href="javascript: void(0);" data-uuid="{{productCate.uuid}}" onclick="start(this)">启用</a>
+							{{/if}}
+							<a class="btn btn-black" href="javascript: void(0);" data-uuid="{{productCate.uuid}}" onclick="up(this)">上移</a>
+							<a class="btn btn-black" href="javascript: void(0);" data-uuid="{{productCate.uuid}}" onclick="down(this)">下移</a>
+						</p>
+					</div>
+				</div>
+			</li>
+            {{/each}}
+        </ul>
+    </script>
+</div>
+
+<!-- MUI框架插件 -->
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+<script>
+    var nowPage = 1;
+    var pageShow = 10;
+    var productCateList = [];
+    var hasMore = true;
+
+    $(function () {
+        queryProductCategory(false);
+        // 查询框绑定事件
+        $('#query').on('change', function () {
+            nowPage = 1;
+            productCateList = [];
+            queryProductCategory(false);
+        });
+        // 上拉加载更多
+        $(window).scroll(function () {
+            var scrollTop = $(this).scrollTop();
+            var scrollHeight = $(document).height();
+            var windowHeight = $(this).height();
+            if (scrollTop + windowHeight >= scrollHeight) {
+                if (hasMore === true) {
+                    queryProduct(true);
+                }
+            }
+        });
+    });
+
+    function queryProductCategory(isScroll) {
+        if (isScroll) {
+            nowPage++;
+        }
+		var qm = {
+			"queryPage":1,
+			"pageShow":20,
+			"queryParams":{
+				"vendorUuid":{
+					"operation":"EQ",
+					"value":sessionObtain('vendorId')
+				},
+				"name":{
+					"operation":"LIKE",
+					"value":$.trim($('#query').val())
+				}
+			},
+			"sortMap":{
+				"position":"asc"
+			}
+		};
+		var params = {"qm":JSON.stringify(qm),"accessToken":sessionObtain('accessToken'),"userId":sessionObtain('userId'),"deviceId":sessionObtain('deviceId')};
+        $.axs(
+            'userfront/productcate/list',
+			params,
+            function (res) {
+                if (res.returnCode === 1) {
+					console.info(res.data);
+                    var pager = res.data.pager;
+                    if (pager.totalNum <= pager.pageShow * pager.nowPage) {
+                        hasMore = false;
+                    }
+                    productCateList = productCateList.concat(res.data.result);
+                    var htmlstr = template('productCateList', {'productCateList': productCateList});
+                    $("#main").html(htmlstr);
+                }
+            }
+        );
+    }
+	// 编辑分类
+	function toEdit(that) {
+        var uuid = $(that).data('uuid');
+        session('productCategoryUuid', uuid);
+        window.location.href = 'productCategoryEdit.html';
+    }
+	// 启用分类
+    function start(that) {
+        var uuid = $(that).data('uuid');
+		var methodName = "userfront/productcate/start";
+		var params = {"changeUuid":uuid,"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        $.ax(
+             methodName,
+             params,
+             false,
+             "post",
+             "json", 
+             function(data){
+            	 if (data.returnCode === 1) {
+                     mui.toast('启用分类成功');
+					 nowPage = 1;
+					 productCateList = [];
+                     queryProductCategory(false);
+                 } else {
+                     mui.toast(data.message);
+                 }
+             }
+         );
+    }
+	// 禁用分类
+    function stop(that) {
+        var uuid = $(that).data('uuid');
+        var methodName = "userfront/productcate/stop";
+		var params = {"changeUuid":uuid,"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        $.ax(
+             methodName,
+             params,
+             false,
+             "post",
+             "json", 
+             function(data){
+            	 if (data.returnCode === 1) {
+					 nowPage = 1;
+					 productCateList = [];
+                     queryProductCategory(false);
+                 } else {
+                     mui.toast(data.message);
+                 }
+             }
+         );
+    }
+	function up(that){
+		var uuid = $(that).data('uuid');
+        var methodName = "userfront/productcate/up";
+		var params = {"changeUuid":uuid,"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        $.ax(
+             methodName,
+             params,
+             false,
+             "post",
+             "json", 
+             function(data){
+            	 if (data.returnCode === 1) {
+					 nowPage = 1;
+					 productCateList = [];
+                     queryProductCategory(false);
+                 } else {
+                     mui.toast(data.message);
+                 }
+             }
+         );
+	}
+	
+	function down(that){
+		var uuid = $(that).data('uuid');
+        var methodName = "userfront/productcate/down";
+		var params = {"changeUuid":uuid,"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        $.ax(
+             methodName,
+             params,
+             false,
+             "post",
+             "json", 
+             function(data){
+            	 if (data.returnCode === 1) {
+					 nowPage = 1;
+					 productCateList = [];
+                     queryProductCategory(false);
+                 } else {
+                     mui.toast(data.message);
+                 }
+             }
+         );
+	}
+</script>
+</body>
+
+</html>

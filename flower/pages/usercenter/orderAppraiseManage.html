@@ -1,0 +1,171 @@
+﻿<!doctype html>
+<html>
+
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="../../css/member.css" type="text/css" media="screen"/>
+
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/init.js"></script>
+</head>
+
+<body>
+<div class='page' :id="'skin_'+styleClass" v-cloak>
+    <header class="common-header blue-style">
+        <div class="top_fixed">
+            <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+            <h1 class="top_title">我的评价</h1>
+        </div>
+    </header>
+
+	<!-- 订单列表  -->
+    <section class='order_list'>
+        <!-- 列表展示  -->
+        <template v-if="!!appraiseList[0]">
+            <a :href="'orderAppraiseDetail.html?uuid='+item.uuid" class='items' v-for="(item,position) in appraiseList">
+                <div class='y_title'>
+                	<span class="fl">
+                        <span class='store_name'>订单号：{{item.orderNo}}</span>
+                    </span>
+                    <span class='color_red fr'>{{item.auditStateName}}</span>
+                </div>
+                <div class='cells nomargin'>
+                    <div class='cell'>
+                    	<div class="cell-hd">
+                            <img v-if="item.pic1 !== null && item.pic1 !== ''" :src="item.pic1">
+       						<img v-else src="img/pic.png">
+                        </div>
+                        <div class="cell-bd">
+                        </div>
+                        <div class="cell-ft color_999">
+                        	评分：{{item.score}} 分
+                        </div>
+                            
+                    </div>
+                </div>
+            </a>
+            <div class="has-more" v-show="hasMore"></div>
+        </template>
+        <div class="norecord" v-else>
+            <img src='../../images/nodata.png'>
+           	 您还没有评价哦
+        </div>
+        <!-- 列表展示 end -->
+    </section>
+    <!-- 订单列表 end  -->
+</div>
+
+<!-- MUI框架插件 -->
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/vue.js"></script>
+<script>
+$(function () {
+    // 查询框绑定事件
+    $('#query').on('change', function () {
+        app.search();
+    });
+    
+ 	// 上拉加载更多
+    $(window).scroll(function(){
+        var scrollTop = $(this).scrollTop();
+        var scrollHeight = $(document).height();
+        var windowHeight = $(this).height();
+        if(scrollTop + windowHeight >= scrollHeight){
+            if (app.hasMore == true) {
+                getOrderAppraiseList(true);
+            }
+        }
+    });
+});
+app = new Vue({
+    el: ".page",
+    data: {
+        appraiseList: [],
+        nowPage: 1, 	//当前页码数
+        pageShow: 10,	//每页显示条数
+        hasMore: true,   // 列表上拉是否可以加载更多
+        searchKey:''     //搜索关键字
+    },
+    created: function () {
+    	// 获取商户皮肤值
+        var styleClass = obtain("styleClass");
+        // 设置页面皮肤值
+        this.styleClass = styleClass;
+        this.$nextTick(function () {
+            getOrderAppraiseList(false);
+        });
+    },
+    methods: {
+        //搜索
+        search(){
+            app.searchKey=$("#query").val();
+            getOrderAppraiseList(false);
+        },
+        toView(uuid){
+        	window.location.href = "orderAppraiseDetail.html?uuid="+uuid;
+        }
+    }
+});
+
+//获取订单评价集合
+function getOrderAppraiseList(scroll){
+	var customerUuid = obtain('customerUuid');
+    if (scroll) {
+    	app.nowPage += 1;
+    }else{
+    	app.nowPage = 1;
+        app.appraiseList = [];
+    }
+    var qm = {
+        "pageShow": app.pageShow,
+        "queryPage": app.nowPage,
+        "queryParams": {
+            "customerUuid": {
+                "operation": "EQ",
+                "value": customerUuid
+            }
+        },
+        "sortMap": {}
+    }
+    if(app.searchKey!=''){
+        qm.queryParams['orderNo']={
+            "operation": "LIKE",
+            "value": app.searchKey
+        }
+    }
+    var methodName = "/orderappraise/list";
+    PostData(methodName, JSON.stringify(qm), function (data) {
+        if (data && data.returnCode === 1) {
+            var list = data.returnMessage;
+            if(list){
+                //如果滚动，将新数据往list添加
+                if(scroll){
+                	app.appraiseList = app.appraiseList.concat(list);
+                }else{
+                	app.appraiseList = list;
+                }
+                if (list.length < app.pageShow) {
+                    app.hasMore = false;
+                } else {
+                    app.hasMore = true;
+                }
+            }
+        }
+    });
+}
+
+</script>
+</body>
+
+</html>

@@ -1,0 +1,233 @@
+<!doctype html>
+<html>
+<head>
+<title>鲜花蛋糕-极速配送</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" type="text/css" href="../../css/amazeui.swiper.min.css">
+<link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="../../css/shop.css" type="text/css" media="screen" />
+
+<script src="../../js/jquery-1.11.1.min.js"></script>
+<script src="../../js/init.js"></script>
+</head>
+<body>
+<div class="page" v-cloak>
+    <!-- 公共头部 -->
+    <header class="common-header">
+        <div class="top_fixed">
+            <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+            <h1 class="top_title">确认订单</h1>
+            <top-nav></top-nav>
+        </div>
+    </header>
+    <!-- 公共头部 end -->
+
+    <!-- 配送方式  -->
+    <div class='pane_box no_padding'>
+        <div class='type_item sendtype_title'>
+            <div class='type_title'>
+                <div class='raido_box'>
+                    <label class='raido_custom' :class="{'active':sendType==1}" @click="chooseType(1)">
+                        <span class='icon'></span>
+                        <span class='name'>快递</span>
+                    </label>
+                    <label class='raido_custom' :class="{'active':sendType==2}" @click="chooseType(2)">
+                        <span class='icon'></span>
+                        <span class='name'>上门自提</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <section v-show="sendType==1">
+            <a class='type_item navigateTo' href="shopAddress.html">
+                <div class='type_title'>配送地址</div>
+                <div class='type_content'>
+                    <div class="t-r color_999" v-if="!address">选择地址</div>
+                    <div class='t-r text_elli' v-else>
+                        {{address.consignee}} {{address.mobile}} {{address.address}}
+                    </div>
+                </div>
+            </a>
+            <a href="sendTime.html" class='type_item navigateTo'>
+                <div class='type_title'>送达时间</div>
+                <div class='type_content'>
+                    <div class='t-r' v-if="sendTime">{{sendTime}}</div>
+                    <div class='t-r color_999' v-else>请选择</div>
+                </div>
+            </a>
+        </section>
+        <section class="store-infomation" v-show="sendType==2">
+            <div class='cell cell-access'>
+                <div class="cell-hd">
+                    <img src='../../images/area.png'/>
+                </div>
+                <div class="cell-bd">
+                    {{vendorInfo.contactAddress}}
+                </div>
+                <div class="cell-ft">
+                </div>
+            </div>
+            <a class='cell cell-access' href="tel:13276543412">
+                <div class="cell-hd">
+                    <img src='../../images/index_phone.png'/>
+                </div>
+                <div class="cell-bd">
+                     {{vendorInfo.contactMobile}}
+                </div>
+                <div class="cell-ft">
+                </div>
+            </a>
+            <div class='cell cell-access'>
+                <div class="cell-bd">
+                    <span class="color_999">亲，勾选上门自提，需要自己去门店取货哦！</span>
+                </div>
+            </div>
+        </section>
+    </div>
+    <!-- 配送方式 end  -->
+
+    <!-- 备注  -->
+    <div class='pane_box no_padding'>
+        <a class='type_item navigateTo' href="confirmOrderNotes.html">
+            <div class='type_title'>祝福语</div>
+            <div class='type_content'>
+                <div class='t-r text_elli' v-if="orderNote">{{orderNote}}</div>
+                <div class='t-r color_999' v-else>选填</div>
+            </div>
+        </a>
+    </div>
+    <!-- 备注 end -->
+
+    <!-- 商品明细  -->
+    <div class='pane_box no_padding'>
+        <!--商品列表  -->
+        <div class='good_list cells nomargin z-gaiborder'>
+            <ul class="z-listfood"  v-if="cartData">
+                <li class='z-cell' v-for="detail in cartData.detailList" v-if="true == detail.checked">
+					<div class='cell-td'><img :src='detail.image'></div>
+                    <div class="cell-hd">
+						<div class="name text_elli">{{detail.productName}}</div>
+                    </div>
+                    <div class="cell-ft">
+						<span class='price fz22'>￥<span class='fz28'>{{detail.totalPrice|NumberFmt}}</span></span>
+                    </div>
+                    <div class="cell-bd t-c z-numminw">
+						<span>x{{detail.buyNum}}</span>
+                    </div>
+                </li>
+            </ul>
+            <!--商品列表 end -->
+            <section class="other_cell">
+                <div class='z-cell' v-if="1 == sendType">
+                    <div class='cell-td'><span class='label yellow'>配送费</span></div>
+                    <div class="cell-hd">
+                        <div class="name z-name">配送</div>
+                    </div>
+                    <div class="cell-ft">
+                        <span class='price fz22'>￥<span class='fz28'>{{cartData.distributionPriceNew |NumberFmt}}</span></span>
+                    </div>
+					<div class="cell-bd t-c z-numminw" v-if="true == freeDistribution">
+					   <span class='line-through color_999'>￥{{cartData.distributionPrice |NumberFmt}}</span>
+				    </div>
+                </div>
+				<div class='z-cell' v-if="vendorDiscount.mjOpen && mjPrice > 0">
+					<div class='cell-td'><span class='label yellow_line'>满减</span></div>
+					<div class="cell-hd">
+					  <div class="name z-name">下单立减优惠</div>
+					</div>
+					<div class="cell-ft">
+					  <span class='price fz22'>-￥<span class='fz28'>{{mjPrice|NumberFmt}}</span></span>
+					</div>
+					<div class="cell-bd t-c">
+					</div>
+			   </div>
+			  
+			  <div class='z-cell' v-if="vendorDiscount.ljOpen && newCustomer">
+				<div class='cell-td'><span class='label green_line'>新客</span></div>
+				<div class="cell-hd">
+				  <div class="name z-name">新用户立减</div>
+				</div>
+				<div class="cell-ft">
+				  <span class='price fz22'>-￥<span class='fz28'>{{ljPrice|NumberFmt}}</span></span>
+				</div>
+			  </div>
+            </section>
+        </div>
+        <div class='cart_totle'>
+            合计 <span class='price'>￥<span class='fz30'>{{allPrice|NumberFmt}}</span></span>
+        </div>
+    </div>
+    <!-- 商品明细 end  -->
+
+    <!-- 支付方式  -->
+    <div class='pane_box no_padding mb_150'>
+        <div class='type_item clearfix'>
+            <div class='type_title'>支付方式</div>
+        </div>
+        <div class='z-cell use_integral' v-if="showIntegral">
+            <div class="cell-hd">
+                <span class='fz28'>可用{{deductionIntegral}}积分抵减</span>
+                <p class='fz22 color_999'>现有{{usableIntegral}}积分</p>
+            </div>
+            <div class="cell-ft">
+                <span class='price fz22 pull-m-r-20'>-￥<span class='fz28'>{{canFree|NumberFmt}}</span></span>
+                <span class='check_custom' :class="{'active':isUseIntegral}">
+              <span class='icon' @click="useIntegral"></span>
+                </span>
+            </div>
+        </div>
+        <div class='z-cell pay_type' :class="{'active':payType=='wx'}" @click="changePayType('wx')">
+            <img src='../../images/wx.png' class="fl">
+            <div class="cell-hd">
+                <div class="fz26">微信支付</div>
+            </div>
+            <div class="cell-ft">
+                <div class='raido_custom'>
+                    <span class='icon'></span>
+                </div>
+            </div>
+        </div>
+        <div class='z-cell pay_type' :class="{'active':payType=='offline'}" @click="changePayType('offline')">
+            <img src='../../images/ofline.png' class="fl">
+            <div class="cell-hd">
+                <div class="fz26">线下支付</div>
+            </div>
+            <div class="cell-ft">
+                <div class='raido_custom'>
+                    <span class='icon'></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 支付方式 end  -->
+
+    <!--结算按钮  -->
+    <footer class="pay_footer">
+        <div class='creat_order clearfix'>
+            <div class='pull-p-l-40 fl'>合计：￥<span class='fz34'>{{payPrice|NumberFmt}}</span></div>
+            <div class='btn btn-yellow-bg fr' @click="confirmOrder">确认支付</div>
+        </div>
+    </footer>
+    <!--结算按钮 end -->
+    
+</div>
+
+<!-- 页面调用公共插件 -->
+<script src="../../js/vue.js"></script>
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/filter.js"></script>
+<script src="../../js/jquery.cookie.js"></script>
+<script src="../../js/modal/confirmOrder.js"></script>
+
+
+</body>
+</html>

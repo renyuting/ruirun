@@ -1,0 +1,274 @@
+<!doctype html>
+<html>
+<head>
+<title>鲜花蛋糕-极速配送</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" type="text/css" href="../../css/amazeui.swiper.min.css">
+<link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="../../css/shop.css" type="text/css" media="screen" />
+
+<script src="../../js/jquery-1.11.1.min.js"></script>
+<script src="../../js/init.js"></script>
+</head>
+<body>
+<div class="page" v-cloak>
+    <!-- 公共头部 -->
+    <header class="store-header">
+        <a class="top_icon go_back fl mui-action-back" href="javascript:;"></a>
+        <a class="top_icon go_home fr " :href="'index.html'"></a>
+    </header>
+    <!-- 公共头部 end -->
+
+    <!-- 商品详情主图切换  -->
+    <section class="product-swiper">
+        <div class="swiper-container product-banner">
+			<div class="swiper-wrapper">
+				<div class="swiper-slide" v-for="img in product.productImageList">
+					<img :src="img.bigImg">
+				</div>
+			</div>
+            <!-- Add Pagination -->
+            <div class="y_qhdiv swiper-pagination"></div>
+        </div>
+    </section>
+    <!-- 商品详情主图切换 end  -->
+
+    <!-- 商品基础信息 -->
+    <section class="product-info">
+        <h2 class="name">
+            <label class="label yellow" v-if="product.tag">
+                {{product.tag=='xp'?'新品':product.tag=='zp'?'招牌':''}}
+            </label>
+            {{product.name}}
+        </h2>
+        <h3 class="descript">{{product.note}}</h3>
+        <div class="price-box">
+            <template v-if="promotionPrice==0">
+                <span class="price pull-m-r-20">￥<span class="fz48">{{price|NumberFmt}}</span></span>
+            </template>
+            <template v-else>
+                <span class="price pull-m-r-20">￥<span class="fz48">{{promotionPrice|NumberFmt}}</span></span>
+                <del class="del">￥{{price|NumberFmt}}</del>
+            </template>
+        </div>
+        <div class="numbox">
+            <span class="numbox-minus" @click="reduceNum()"></span>
+            <span class="numbox-input">{{buyNum}}</span>
+            <span class="numbox-plus" @click="addNum()"></span>
+        </div>
+    </section>
+    <!-- 商品基础信息 end -->
+
+    <!-- 购买数量 -->
+    <!-- <nav class='member_nav cells'>
+        <section class='cell'>
+            <div class="cell-hd">
+                选择数量
+            </div>
+            <div class="cell-bd">
+                
+            </div>
+            <div class="cell-ft">
+            	
+            </div>
+        </section>
+    </nav> --><!-- 购买数量 end -->
+
+    <!-- 详情操作按钮 -->
+    <footer class="y_fixedfooterbox">
+        <div class="y_footer y_goodsfoot">
+            <a class="y_goodsbtn" :href="'cart.html'">
+                <s class="y_cart"></s>购物车
+                <span class="y_fixnumber y_badge">{{cartData.totalNum}}</span>
+            </a>
+            <a class="btn btn-yellow-bg" :class="{'disabled':product.sellOut||!isBuy}" @click="addCart">加入购物车</a>
+        </div>
+    </footer><!-- 详情操作按钮 end -->
+    
+</div>
+
+<!-- 页面调用公共插件 -->
+<script src="../../js/vue.js"></script>
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/jquery.cookie.js"></script>
+<script src="../../js/amazeui.swiper.js"></script>
+<script src="../../js/filter.js"></script>
+
+<script type="text/javascript">
+    new Vue({
+        el:".page",
+        data:{
+            isBuy:false,//是否可卖
+            vendorUuid:'',//商户uuid
+            productUuid:'',//商品uuid
+            product:{},//商品对象
+            price:0,//商品价格
+            promotionPrice:0, //商品促销价
+            buyNum:1,//购买数量
+            // 购物车中商品信息初始数据
+            cartData: {
+                totalNum: 0,   // 购物车内商品数量
+                detailList: [],   // 购物车商品列表
+                distributionPrice: 0,  // 商户默认配送费用
+                distributionPriceNew: 0,  // 商户配送费减免后配送费用
+                totalPrice: 0,  // 购物车商品总价
+                allPrice:0,// 购物车总价
+                vendorName: '',  // 商户名称
+                vendorUuid: '',  // 商户id
+            },
+        },
+        mounted: function(){
+        	//首页轮播
+			var swiper = new Swiper('.product-banner', {
+			  pagination: '.y_qhdiv',
+			  autoplay: 3000,//可选选项，自动滑动
+			  paginationClickable: true,
+			  observer: true
+			});
+
+            var that = this;
+            var vendorUuid = obtain("vendorUuid");  // 商户uuid
+            that.vendorUuid = vendorUuid;
+            that.productUuid = getQueryString('productUuid');
+            that.getProduct();
+
+            var cartData = JSON.parse(obtain('cartData' + vendorUuid));
+            if (!!cartData) {
+                that.cartData = cartData;
+            }
+        },
+        methods: {
+            getProduct:function () {
+                var that = this;
+                PostData("/product/get/" + that.productUuid, '', function (res) {
+                    that.product = res.returnMessage;
+
+                    if(that.product){
+                        that.isBuy = true;
+                        if(that.product.promotionType==0){
+                            that.price=that.product.price;
+                        }else{
+                            that.price=that.product.price;
+                            that.promotionPrice=(parseFloat(that.product.price) * parseFloat(that.product.promotionRate)).toFixed(2);
+                        }
+                    }
+                });
+            },
+
+            addNum:function(){
+                var that = this;
+                that.buyNum++;
+            },
+            reduceNum:function(){
+                var that = this;
+                if(that.buyNum==1)return;
+                that.buyNum--;
+            },
+
+            // 普通商品增加数量
+            addCart: function () {
+                var that = this;
+                var item = that.product;
+                var sellout = item.sellOut;  // 商品是否已售罄
+                if (!!sellout) return;
+                var skuName = item.showName;
+                var productUuid = item.uuid;    // 商品ID
+                var productPrice = item.promotionType != '0' ? item.promotionPrice : item.price;  // 商品价格
+                var nativePrice = item.price;  // 商品原价格
+                var integral = item.integral || 0;   // 赠送积分数
+                var name = item.name;   // 商品名称
+                var image = item.smallimg;   // 商品图片
+
+                var detailList = that.cartData.detailList || [];   // 购物车商品列表
+                var totalNum = that.cartData.totalNum || 0;   // 购物车商品总数
+
+                var totalPrice = parseFloat(productPrice) * parseInt(that.buyNum);
+                // 购物车中已有数据
+                if (detailList.length > 0) {
+                    if (hasGoods(productUuid, detailList, skuName)) {  // 所选商品购物车中已存在
+                        for (var dNum = 0; dNum < detailList.length; dNum++) {
+                            var value = detailList[dNum];
+                            if (!skuName) {
+                                if (value.productUuid == productUuid && !value.showName) {
+                                    value.buyNum = value.buyNum + that.buyNum;
+                                    value.totalPrice = (parseFloat(value.totalPrice) + parseFloat(value.productPrice) * parseInt(that.buyNum)).toFixed(2);
+                                }
+                            } else {
+                                if (value.productUuid == productUuid && skuName == value.showName) {
+                                    value.buyNum = value.buyNum + that.buyNum;
+                                    value.totalPrice = (parseFloat(value.totalPrice) + parseFloat(value.productPrice) * parseInt(that.buyNum)).toFixed(2);
+                                }
+                            }
+
+                        }
+                    } else {   // 所选商品购物车中不存在
+                        detailList.push({
+                            productUuid: productUuid,
+                            productName: name,
+                            buyNum: that.buyNum,
+                            integral: integral,
+                            productPrice:productPrice,
+                            nativePrice:nativePrice,
+                            totalPrice: totalPrice,
+                            image:image,
+                            checked:true  //是否选中
+                        })
+                    }
+                } else { // 购物车中无数据
+                    detailList.push({
+                        productUuid:productUuid,
+                        productName:name,
+                        buyNum: that.buyNum,
+                        integral: integral,
+                        productPrice:productPrice,
+                        nativePrice:nativePrice,
+                        totalPrice: totalPrice,
+                        image:image,
+                        checked:true //是否选中
+                    })
+                }
+                totalNum = totalNum + that.buyNum;
+
+                that.cartData.detailList = detailList;
+                that.cartData.totalNum = totalNum;
+                that.cartData.vendorUuid = that.vendorUuid;
+
+                // 将购物车商品信息存储到本地存储中
+                storage('cartData' + that.vendorUuid, JSON.stringify(that.cartData));
+            },
+
+        }
+    });
+
+    // 判断购物车中是否已有该商品
+    function hasGoods(productUuid, detailList, specName) {
+        for (var dNum = 0; dNum<detailList.length;dNum++) {
+            var value = detailList[dNum];
+            if (!specName) {
+                //如果是加入非规格，判断明细商品uuid相等，并且明细没有规格
+                if (value.productUuid == productUuid && !value.showName) {
+                    return true;
+                }
+            } else {
+                //如果是加入规格，判断明细商品uuid相等，并且明细规格等于加入的规格
+                if (value.productUuid == productUuid && value.showName == specName) {
+                    return true;
+                }
+            }
+
+        }
+        return false;
+    }
+  
+</script>
+</body>
+</html>

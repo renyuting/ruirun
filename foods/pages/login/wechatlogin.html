@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="../../css/member.css" type="text/css" media="screen"/>
+
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/init.js"></script>
+</head>
+<body>
+<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+
+<div id="login_container"></div>
+
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<!--<script src="http://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js"></script>-->
+<script>
+    $(function () {
+
+    });
+
+    function GetRequest() {
+        var url = location.search; //获取url中"?"符后的字串
+        var theRequest = new Object();
+        if (url.indexOf("?") != -1) {
+            var str = url.substr(1);
+            strs = str.split("&");
+            for (var i = 0; i < strs.length; i++) {
+                theRequest[strs[i].split("=")[0]] = unescape(strs[i].split("=")[1]);
+            }
+        }
+        return theRequest;
+    }
+
+    //获取code
+    // var wxloginstate = localStorage.getItem("wxloginstate");
+
+    Request = GetRequest();
+
+    var code = Request['code'];
+    var state = Request['state'];
+    var params = state.split("_");
+    var vendorId = params[0];
+    var toPage = params[1];
+    var inviterUuid = params[2];
+    if (vendorId && code) {
+        wechatLogin(code, vendorId,inviterUuid);
+    } else {
+        alert("请求不合法");
+    }
+
+    function wechatLogin(code, vendorId, inviterUuid) {
+        var url = window.domain + "/wap/wechat/login?code=" + code + "&vendorId=" + vendorId;
+        $.ajax({
+            url: url,
+            type: "GET",
+            dataType: 'json',
+            success: function (result) {
+                if (result) {
+                    if (result.success) {
+                        var customer = result.data;
+                        if (!customer.uuid) {
+                            mui.alert('登录失败，请稍后再试');
+                            window.location.href = '../shop/welcome.html';
+                        }
+                        session('loginCustomerUuid', customer.uuid);
+                        storage('customer', customer);
+                        storage('customerUuid', customer.uuid);
+                        storage('nickName', customer.customerAccount.nickname);
+                        storage('avatarUrl', customer.customerAccount.image);
+                        updateCustomerInviter(customer.uuid,inviterUuid);
+                        if ('usercenter' === toPage) {
+                            window.location.href = '../usercenter/index.html';
+                        } else {
+                            window.location.href = '../shop/index.html';
+                        }
+                    } else {
+                        mui.alert(result.message, '提示');
+                        window.location.href = '../shop/welcome.html';
+                    }
+                } else {
+                    mui.alert('出错了，请稍后再试');
+                    window.location.href = '../shop/welcome.html';
+                }
+            }
+        })
+    }
+    
+ 	// 如果是分享页面进来，更新邀请人
+    function updateCustomerInviter(customerUuid,inviterUuid){
+    	if(!isEmpty(inviterUuid) && inviterUuid != 'null' && inviterUuid != null && !isEmpty(customerUuid) && customerUuid != inviterUuid){
+    		PostData("/customer/updateCustomerInviter", {"customerUuid":customerUuid,"inviterUuid":inviterUuid}, function (res) {
+    		},"post",null,"application/x-www-form-urlencoded");
+    	}
+    }
+</script>
+</body>
+</html>

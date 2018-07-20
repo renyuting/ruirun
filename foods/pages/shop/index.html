@@ -1,0 +1,307 @@
+<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" type="text/css" href="../../css/amazeui.swiper.min.css">
+<link rel="stylesheet" href="../../css/shop.css" type="text/css" media="screen" />
+
+<script src="../../js/jquery-1.11.1.min.js"></script>
+<script src="../../js/init.js"></script>
+</head>
+<body>
+<div class="page" :id="'skin_'+styleClass" v-cloak>
+    <!-- 商户、商品信息 -->
+    <section class="index_page">
+        <header class='store_top'>
+            <!-- 商户基本信息 -->
+            <div class='store_info'>
+              <div class='image'>
+                <img :src='storeLogo' />
+              </div>
+              <div class='name'>{{vendorName}}</div>
+            </div><!-- 商户基本信息 end -->
+          
+            <!-- 店铺促销优惠  -->
+            <div class='store_Offer clearfix' v-if="vendorDiscount.ljOpen || vendorDiscount.mjOpen">
+                <div class="fl zaddwfl">
+                  <div class='items' v-if="vendorDiscount.mjOpen">
+                    <span class='Offer_label'>满减</span>
+                    <span class='fz20 color_666'>
+                    	满{{vendorDiscount.money1}}减{{vendorDiscount.free1}}，满{{vendorDiscount.money2}}减{{vendorDiscount.free2}}，满{{vendorDiscount.money3}}减{{vendorDiscount.free3}}
+                    </span>
+                  </div>
+                  <div class='items' v-if="vendorDiscount.ljOpen">
+                    <span class='Offer_label green'>新客</span>
+                    <span class='fz20 color_666'>本店新用户立减{{vendorDiscount.ljFree}}元</span>
+                  </div>
+                </div>
+                <div class='Offer_more fr'>
+                  {{vendorDiscount.discountNum}}个优惠
+                </div>
+            </div>
+            <!-- 店铺促销优惠 end -->
+
+            <!-- 优惠券领取 -->
+            <section class="coupon-box">
+                <ul class="index-coupon">
+                    <li class="disabled">
+                        <span class="">￥<span class="fz34">20</span></span>
+                        <p>无门槛使用</p>
+                        <label class="state">已领</label>
+                    </li>
+                    <li>  <!-- disabled 类名不可领状态 -->
+                        <span class="">￥<span class="fz34">50</span></span>
+                        <p>满500元使用</p>
+                        <label class="state">领</label>
+                    </li>
+                    <li>
+                        <span class="">￥<span class="fz34">100</span></span>
+                        <p>满1000元使用</p>
+                        <label class="state">领</label>
+                    </li>
+                    <li>
+                        <span class="">￥<span class="fz34">100</span></span>
+                        <p>满1000元使用</p>
+                        <label class="state">领</label>
+                    </li>
+                </ul>
+            </section>
+            <!-- 优惠券领取 end -->
+
+            <!-- 用户中心悬浮  -->
+            <nav class='user_fixed' @click="goUserCenter">
+                <button type="button"></button>
+            </nav>
+            <!-- 用户中心悬浮 end -->
+        </header>
+
+        <!-- 商品分类、商品列表 -->
+        <section class='good_content'>
+          <!--商品分类  -->
+          <aside class='good_class'>
+            <div class="class_list">
+              <div class='items' :class='classCurId=="zp"?"active":""' v-if="vendorBasic.showSign" @click="showGoods('zp','招牌')">
+                  <img src="../../images/Group_2.png">
+                  招牌
+              </div>
+              <div class='items' v-if="vendorBasic.showPromotion" :class='classCurId=="yh"?"active":""' @click="showGoods('yh','优惠')">
+                  <img src="../../images/Group_3.png">
+                  优惠
+              </div>
+              <div class='items' :class='classCurId==item.uuid?"active":""' v-for="item in goodClass" @click="showGoods(item.uuid,item.name)">
+                  {{item.name}}
+              </div>
+            </div>
+          </aside><!--菜品分类 end  -->
+          <!--菜品展示  -->
+          <main class="store_good">
+            <!--商品列表  -->
+            <section class='index_good_list' v-if="!!goodList[0]">
+                <h2 class='class_title'>{{classCurName}}</h2>
+                <div class='items' v-for="item in goodList">
+                    <div class='image'>
+                        <span class='label yellow' v-if="!!item.tagName">{{item.tagName}}</span>
+                        <img :src='item.smallimg'>
+                    </div>
+                    <div class='info'>
+                        <div class='desc name'>{{item.name}}</div>
+                        <div class='desc' v-if="!!item.note">{{item.note}}</div>
+                        <div class='free' v-if="item.promotionType != '0'"><span class='label yellow_line'>{{item.rebate}}折</span></div>
+                        <div class='bottom clearfix'>
+                            <p class='price fz22 fl'>
+                                ￥<span class='now_price'>{{item.promotionType != '0'?item.lastPrice:item.price}}</span>
+                                <span class='old_price' v-if="item.promotionType != '0'">￥{{item.price}}</span>
+                            </p>
+                            <div class="numbox fr" v-if="!item.spec">
+                            	<transition name="move">
+	                                <span class="numbox-minus-wrapper" v-show='item.buyNum >= 1' @click="reduceCart(item.uuid)">
+	                                	<span class="numbox-minus"></span>
+	                                </span>
+                                </transition>
+                                <transition name="fade">
+                                	<span class="numbox-input" v-show='item.buyNum >= 1'>{{item.buyNum}}</span>
+                                </transition>
+                                <span class="numbox-plus" :class="{'disabled':item.sellOut}" @click="addCart(item,1,$event)"></span>
+                            </div>
+                            <div class="numbox fr" v-else>
+                            	<transition name="move">
+	                                <span class="numbox-minus-wrapper" v-show='item.buyNum >= 1' @click="selectMinus">
+	                                	<span class="numbox-minus disabled"></span>
+	                                </span>
+                                </transition>
+                                <transition name="fade">
+                                	<span class="numbox-input" v-show='item.buyNum >= 1'>{{item.buyNum}}</span>
+                                </transition>
+                                <span class="numbox-plus" :class="{'disabled':item.sellOut}" @click="selectSpec(item)"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="has-more" v-if="hasMore"></div>
+            </section><!--商品列表 end  -->
+            <div class="norecord" v-else>
+                <image src='../../images/nodata.png'></image>
+                对不起！暂无相关商品
+            </div>
+          </main><!--商品展示 end  -->
+        </section><!-- 商品分类、商品列表 end -->
+    </section><!-- 商户、商品信息 end -->
+
+    <!-- 规格商品不可减提示 -->
+    <transition name="fade">
+	    <section class="selectInfo" v-show="noMinus" @click="hideInfo">
+	    	<div class="infoText" :style="{ top: noMinusTop + 'px' }">多规格商品只能去购物车删除哦</div>
+	    </section>
+    </transition>
+    <!-- 规格商品不可减提示 end -->
+
+    <!--购物车导航  -->
+        <!-- 满额免运费  -->
+    <template v-if="!!outStore && !!vendorBasic.reachPrice">
+	    <div class='cart_salesinfo' v-if="cartData.totalPrice>=vendorBasic.reachPrice">
+	        已满{{vendorBasic.reachPrice}}元，已减免配送费
+	    </div>
+	    <div class='cart_salesinfo' v-else>
+	        满{{vendorBasic.reachPrice}}元可免配送费
+	    </div>
+    </template>
+    <section class='cart_fixed'>
+        <nav class='cart_btn' :class='cartData.totalNum<=0?"disabled":""' @click='showHideCart'>
+            <img src='../../images/cart.png'>
+            <span class='beade' v-show='cartData.totalNum>0'>{{cartData.totalNum}}</span>
+            <div class="ball-contain" ref="ballContain">
+              <template v-for="ball in balls">
+                <transition v-on:before-enter="beforeEnter" v-on:enter="enter" v-on:after-enter="afterEnter">
+                  <div class='ball-wrapper' v-show="ball.show">
+                    <div class='inner inner-hock'></div>
+                  </div>
+                </transition>
+              </template>
+            </div>
+        </nav>
+        <div class='cart_info' v-if="cartData.totalNum>0">
+            <div class='name' :class='!outStore?"single_name":""' v-if="outStore">￥{{cartData.allPrice}}</div>
+			<div class='name' :class='!outStore?"single_name":""' v-if="!outStore">￥{{cartData.totalPrice}}</div>
+            <template v-if="!!outStore">
+            	<div class='color_999 fz20' v-if="cartData.allPrice<vendorBasic.reachPrice">
+	                另需配送费{{vendorBasic.distributionPrice}}元
+	            </div>
+	            <div class='color_999 fz20 line-through' v-else>
+	                已减免配送费{{vendorBasic.distributionPrice}}元
+	            </div>
+	        </template>
+        </div>
+        <div class='cart_nodata' v-else>
+	        购物车是空的
+	    </div>
+	    <button class='go_bill' :class='!cartData.totalNum>0 || cartData.allPrice<vendorBasic.leastPrice?"disabled":""'
+              @click='goBill' v-if="outStore">
+            {{getOuterprice}}
+        </button>
+        <button class='go_bill' :class='!cartData.totalNum>0?"disabled":""'
+              @click='goBill' v-else>去结算
+        </button>
+    </section>
+    <!--购物车导航 end -->
+
+    <!--购物车内容悬浮  -->
+    <section class="popup" :class="{'show':cartHidden}">
+      <div class="mask" @click="cartHidden=false"></div>
+      <div class="popup-content cart_pop">
+          <!--标题  -->
+          <header class='cart_title clearfix'>
+              <span class="fl">
+                  <span class='color_999'>已选商品</span>
+                  （共{{cartData.totalNum}}件）
+              </span>
+              <span class="fr" @click='cleanCart' class='color_999'>
+                  <img src='../../images/delect.png'>
+                  清空
+              </span>
+          </header><!--标题 end -->
+          <!--商品列表  -->
+          <ul class='cart_list cells nomargin'>
+              <li class='cell' v-for="item in cartData.detailList">
+                  <div class="cell-hd">
+                      <div class="name text_elli">{{item.productName}}</div>
+                      <span class='color_999' v-if="!!item.showName">{{item.showName}}</span>
+                  </div>
+                  <div class="cell-bd">
+                      <div class='price fz22'>
+                          ￥
+                          <span class='fz28'>{{item.totalPrice}}</span>
+                      </div>
+                  </div>
+                  <div class="cell-ft">
+                    <div class="numbox fr">
+                        <span class="numbox-minus" @click="reduceCart(item.productUuid,item.showName,item.integral)"></span>
+                        <span class="numbox-input">{{item.buyNum}}</span>
+                        <span class="numbox-plus" @click='addCart(item,2,$event)'></span>
+                    </div>
+                  </div>
+              </li>
+          </ul><!--商品列表 end -->
+          <!-- 餐盒  -->
+          <div class='cells cart_other' v-if="outStore" v-show='!!cartData.lunchboxPrice'>
+              <div class='cell'>
+                  <div class="cell-hd">
+                    <div class="name fz26 text_elli">餐盒</div>
+                  </div>
+                  <div class="cell-bd">
+                    <div class='price fz22'>￥
+                          <span class='fz28'>{{cartData.lunchboxPrice}}</span>
+                      </div>
+                  </div>
+                  <div class="cell-ft">
+                      
+                  </div>
+              </div>
+          </div><!-- 餐盒 end -->
+      </div>
+    </section>
+    <!--购物车内容悬浮 end  -->
+
+    <!--选择规格悬浮  -->
+    <section class="modal spec_modal" :class="{'show':specHidden}" v-cloak>
+      <div class="mask" @click="specHidden=false"></div>
+      <div class="modal-content">
+          <header class='spec_title'>{{selectItem.specPdName}}</header>
+          <ul class='spec_list tl'>
+              <li class='item' v-for="spec in selectItem.specs">
+                  <div class='title'>{{spec.name}}</div>
+                  <div class='item_content'>
+                      <span v-for="value in spec.productAttrValueList" :class="value.active" @click='selectAttr($event,value,spec.spec)'>{{value.value}}</span>
+                  </div>
+              </li>
+          </ul>
+          <footer class='spec_foot'>
+              <div class='price fz22'>￥
+                  <span class='fz28'>{{selectItem.price}}</span>
+              </div>
+              <span class='btn btn-yellow' v-if="!selectItem.sellOut" @click='specAddCart'>加入购物车</span>
+          </footer>
+      </div>
+    </section>
+    <!--选择规格悬浮 end  -->
+
+</div>
+
+<!-- 页面调用公共插件 -->
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/vue.js"></script>
+<script src="../../js/jquery.cookie.js"></script>
+<!-- 首页页面JS -->
+<script src="../../js/modal/index.js"></script>
+</body>
+</html>

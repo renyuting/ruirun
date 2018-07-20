@@ -1,0 +1,137 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="css/member.css" type="text/css" media="screen"/>
+
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/init.js"></script>
+</head>
+<body>
+<header class="common-header">
+    <div class="top_fixed">
+        <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+        <h1 class="top_title">会员列表</h1>
+    </div>
+</header>
+
+<section class="common_search">
+    <input type="search" id="query" name="" placeholder="手机号/昵称">
+</section>
+<section id="main">
+    <div class="has-more" v-show="hasMore"></div>
+    <script id="customerList" type="text/html">
+        <ul class="memberList">
+            {{each memberList as customer}}
+            <li>
+                <div class="y_img"><img src="{{customer.image}}"></div>
+                <div class="y_info">
+                    <div class="y_items m_mb10">
+                        <div>
+                            <p class="fz30">{{customer.nickname}}</p>
+                            <span class="y_phone fz20 f_999"><s></s>{{customer.mobile}}</span>
+                        </div>
+                        <span class="y_integral"><s></s>{{customer.usable_integral ? customer.usable_integral : 0}}</span>
+                    </div>
+                    <div class="y_items">
+                        <span class="fz20 f_999">{{customer.create_time}}</span>
+                        <span>消费：{{customer.time ? customer.time : 0 }}次&nbsp;&nbsp;共{{customer.money ? customer.money : '0.00'}}元</span>
+                    </div>
+                </div>
+            </li>
+            {{/each}}
+        </ul>
+    </script>
+</section>
+<!-- 底部导航 -->
+<footer class="foot_nav_fixed">
+    <navo class="foot_nav">
+        <a class="items" href="index.html"><s class="ico1"></s>首页</a>
+        <a class="items" href="orderList.html"><s class="ico2"></s>订单</a>
+        <a class="items cur" href="memberManage.html"><s class="ico3"></s>会员</a>
+        <a class="items" href="storeIndex.html"><s class="ico4"></s>管理</a>
+    </navo>
+</footer>
+<!-- 底部导航 end -->
+
+<!-- MUI框架插件 -->
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+<script>
+    // 如果没有登录，直接跳转登录页
+    if (!sessionObtain('vendorId')) {
+        window.location.href = "Login.html";
+    }
+
+    var nowPage = 1;
+    var pageShow = 10;
+    var hasMore = true;
+    var memberList = [];
+    $(function () {
+        queryCustomer(false);
+        // 查询框绑定事件
+        $('#query').on('change', function () {
+            nowPage = 1;
+            memberList = [];
+            queryCustomer(false);
+        });
+
+        // 上拉加载更多
+        $(window).scroll(function () {
+            var scrollTop = $(this).scrollTop();
+            var scrollHeight = $(document).height();
+            var windowHeight = $(this).height();
+            if (scrollTop + windowHeight >= scrollHeight) {
+                if (hasMore === true) {
+                    queryCustomer(true);
+                }
+            }
+        });
+    });
+
+    function queryCustomer(isScroll) {
+        if (isScroll) {
+            nowPage++;
+        }
+        var params = {
+            "vendorId": sessionObtain('vendorId'),
+            "query": $.trim($('#query').val()),
+            "page": nowPage,
+            "size": pageShow,
+            accessToken: sessionObtain('accessToken'),
+            userId: sessionObtain('userId'),
+            deviceId: sessionObtain('deviceId')
+        };
+        $.ax(
+            'userfront/customer/getCustomerByVendorId',
+            params,
+            true,
+            'POST',
+            'json',
+            function (res) {
+                if (res && res.returnCode === 1) {
+                    var pager = res.data.pager;
+                    if (pager.totalNum <= pager.pageShow * pager.nowPage) {
+                        hasMore = false;
+                    }
+                    memberList = memberList.concat(res.data.result);
+                    var htmlstr = template('customerList', {'memberList': memberList});
+                    $("#main").html(htmlstr);
+                }
+            }
+        );
+    }
+</script>
+</body>
+</html>

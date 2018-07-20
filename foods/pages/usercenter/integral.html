@@ -1,0 +1,169 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>我的积分</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="../../css/member.css" type="text/css" media="screen"/>
+
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/init.js"></script>
+</head>
+<body>
+
+<div class='page' :id="'skin_'+styleClass">
+    <header class="common-header blue-style">
+        <div class="top_fixed">
+            <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+            <h1 class="top_title">我的积分</h1>
+        </div>
+    </header>
+    <nav class='integral_info'>
+        我的积分
+        <h2 class='length'>{{usableIntegral}}</h2>
+    </nav>
+    <template v-if="!!logList[0]">
+        <div class='carintegral_list cells nomargin'>
+            <section class='cell' v-for="log in logList">
+                <div class="cell-hd">
+                    <span class='badge badge-yellow' v-if="log.integral>0">收</span>
+                    <span class='badge badge-blue' v-else>支</span>
+                    <p class="name fz60">{{log.integral}}</p>
+                </div>
+                <div class="cell-bd">
+                    <p class='carintegral_name'>{{log.typeName}}</p>
+                    <span class="color_999">时间：{{log.createTime}}</span>
+                </div>
+            </section>
+        </div>
+        <div class="has-more" v-if="hasMore"></div>
+        <!-- <div class="no-more" v-else>没有更多内容了</div> -->
+    </template>
+    <div class="norecord" v-else>
+        <img src='../../images/nodata.png'>
+        暂无积分明细
+    </div>
+</div>
+
+
+<!-- 页面调用公共插件 -->
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/vue.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el: ".page",
+        data: {
+            styleClass: '',  // 换肤颜色
+            usableIntegral: '0',  // 积分总数量
+            logList: [],   // 积分收支列表
+            hasMore: true,   // 滚动加载更多提示是否显示
+            nowPage: 1,  // 列表默认从第一页开始展示
+            pageShow: 10,  // 列表每页展示多少条数据
+            integralUuid: "",  // 积分uuid
+        },
+        mounted: function () {
+            // 获取商户皮肤值
+            var styleClass = obtain("styleClass");
+            // 设置页面皮肤值
+            this.styleClass = styleClass;
+
+            // 获取积分数据
+            this.getIntegral();
+        },
+        methods: {
+            // 获取积分数据
+            getIntegral: function () {
+                var that = this;
+                var customerUuid = obtain("customerUuid");
+                var vendorUuid = obtain("vendorUuid");
+                if(!customerUuid){
+                    mui.toast('会员ID为空');
+                    return;
+                }
+                if(!vendorUuid){
+                    mui.toast('商户ID为空');
+                    return;
+                }
+                var qm = {
+                    "customerUuid": customerUuid,
+                    "vendorUuid": vendorUuid
+                };
+                // 获取会员积分信息
+                PostData("/integral/getIntegral", qm, function (res) {
+                    if (res.returnMessage != null) {
+                        var usableIntegral = res.returnMessage.usableIntegral || 0;  // 可用积分数
+                        var uuid = res.returnMessage.uuid || "";  // 积分uuid
+                        that.usableIntegral = usableIntegral;
+                        that.integralUuid = uuid;
+                        that.getIntegralLog('init', uuid);
+                    }
+                }, "", "", "application/x-www-form-urlencoded")
+            },
+            // 获取积分明细
+            getIntegralLog: function (scroll, uuid) {
+                var that = this;
+                var integralUuid = that.integralUuid;
+                if (scroll != "scroll") {
+                    that.nowPage = 1;
+                    integralUuid = uuid;
+                } else {
+                    that.nowPage += 1
+                }
+                var qm = {
+                    "pageShow": that.pageShow,
+                    "queryPage": that.nowPage,
+                    "queryParams": {
+                        "integralUuid": {
+                            "operation": "EQ",
+                            "value": integralUuid
+                        }
+                    },
+                    "sortMap": {}
+                };
+
+                // 获取会员积分信息
+                PostData("/integrallog/list", JSON.stringify(qm), function (res) {
+                    var list = res.returnMessage;
+
+                    if (!list) return;
+
+                    //如果滚动，将新数据往logList添加
+                    var logList = scroll == "scroll" ? that.logList.concat(list) : list;
+                    that.logList = logList;
+
+                    if (list.length < that.pageShow) {
+                        that.hasMore = false
+                    } else {
+                        that.hasMore = true
+                    }
+                })
+            },
+        }
+    });
+
+
+    $(function () {
+        // 上拉加载更多
+        $(window).scroll(function () {
+            var scrollTop = $(this).scrollTop();
+            var scrollHeight = $(document).height();
+            var windowHeight = $(this).height();
+            if (scrollTop + windowHeight >= scrollHeight) {
+                if (vm.hasMore === true) {
+                    vm.getIntegralLog("scroll")
+                }
+            }
+        });
+    })
+</script>
+</body>
+</html>

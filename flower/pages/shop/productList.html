@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+<head>
+<title>鲜花蛋糕-极速配送</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" type="text/css" href="../../css/amazeui.swiper.min.css">
+<link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="../../css/shop.css" type="text/css" media="screen" />
+
+<script src="../../js/jquery-1.11.1.min.js"></script>
+<script src="../../js/init.js"></script>
+</head>
+<body>
+<div class="page" v-cloak>
+    <!-- 公共头部 -->
+    <header class="common-header">
+        <div class="top_fixed">
+            <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+            <h1 class="top_title">商品列表</h1>
+        </div>
+    </header>
+    <!-- 公共头部 end -->
+
+    <!-- 商品列表 -->
+	<div class="has-more store_good" id="showProduct">
+    <section class="list-wrapper" v-if="!!products[0]">
+        <ul class="product-list clearfix">
+            <li v-for="product in products">
+                <a style="cursor:pointer" @click="toDetail(product.uuid)">
+                    <div class="pic"><img :src="product.bigimg"></div>
+                    <h3 class="name">{{product.name}}</h3>
+                    <span class="price"><span class="make">￥</span>{{product.promotionType != '0'?product.lastPrice:product.price}}</span>
+                    <del class="del" v-if="product.promotionType != '0'"><span class="make">￥</span>{{product.price}}</del>
+                    <label class="label yellow" v-if="product.tag">{{'zp' == product.tag ? '招牌' : '新品'}}</label>
+                </a>
+            </li>
+        </ul>
+		<div id="showMore"></div>
+		<div class="no-more" v-show="nomore">暂无更多商品</div>
+    </section>
+    <div class="norecord" v-show="noProduct">
+	 <image src='../../images/nodata.png'></image>
+	 对不起！暂无相关商品
+    </div>
+	</div>
+    <!-- 商品列表 end -->
+    
+</div>
+
+<!-- 页面调用公共插件 -->
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/vue.js"></script>
+<script src="../../js/jquery.cookie.js"></script>
+
+<script type="text/javascript">
+ var vm = new Vue({
+        el:".page",
+        data:{
+		   products: [], //商品列表
+		   nowPage: 1,  // 菜品列表默认从第一页开始展示
+           pageShow: 4,  // 菜品列表每页展示多少条数据
+		   scroll: '', //是否翻页
+		   locked: false,  // 是否锁定滚动翻页
+		   noProduct: false,
+		   nomore: false,
+        },
+        mounted: function(){
+            this.getProduct();
+        },
+        methods: {
+           getProduct: function() {
+		       var that = this;
+		       var categoryId = getQueryString("categoryId");
+			   //根据分类获取商品
+			   that.nowPage = (that.scroll == "scroll")? that.nowPage + 1 : 1
+               var param = {
+					"queryPage": that.nowPage,
+					"pageShow": that.pageShow,
+					"queryParams": {
+						"categoryUuid": {
+							"operation": "EQ",
+							"value": categoryId
+						}
+					}
+				}
+				PostData("/product/list", JSON.stringify(param), function (res) {
+					var list = res.returnMessage;
+					if (list && list.length > 0) {
+					  that.locked = false;
+					  that.nomore = false;
+					} else {
+					   that.nomore = true;
+					}
+					var products = that.scroll == "scroll" ? that.products.concat(list) : list;
+					// 初始化商品列表购买数量
+					if (products.length > 0) {
+					    that.noProduct = false;
+						for (var gNum = 0;gNum < products.length; gNum++) {
+							var value = products[gNum];
+							value.buyNum = 0;
+							// 设置商品优惠信息
+							if (1 == value.promotionType) {
+								value.lastPrice = parseFloat(value.price * value.promotionRate).toFixed(2);
+								value.rebate = value.promotionRate * 10;
+							}
+						}
+					} else {
+					  that.noProduct = true;
+					}
+					
+					that.products = products;
+					$("#showProduct").removeClass("has-more");
+					$("#showMore").removeClass("has-more");
+               })
+			   
+		   },
+		   toDetail: function(productId) {
+		       window.location.href = "detail.html?productUuid="+productId;
+		   }
+        }
+    })
+	
+  $(function(){
+    // 上拉加载更多
+    $(window).scroll(function(){
+        var scrollTop = $(this).scrollTop();
+        var scrollHeight = $(".list-wrapper").outerHeight();
+        var windowHeight = $(this).height();
+        if(scrollTop + windowHeight >= scrollHeight && !vm.locked){
+		    $("#showMore").addClass("has-more");
+			vm.scroll = "scroll";
+			vm.getProduct();
+			vm.locked = true;
+        }
+    });
+})
+</script>
+</body>
+</html>

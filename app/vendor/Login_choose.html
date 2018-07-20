@@ -1,0 +1,74 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="css/member.css" type="text/css" media="screen" />
+
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/init.js"></script>
+</head>
+<body>
+
+<section class="login_logo login_logo2"><img src="img/logo.png"></section>
+
+<section class="login_choose">
+	<h2>欢迎登录，请选择一个角色</h2>
+	<ul class="login_list">
+		<li>
+			<img src="img/logintype_1.png">
+			<h3>服务员</h3>
+			<label class='raido_custom'>
+		    	<input type="radio" name="logintype" checked>
+		        <s class='icon'></s>
+		    </label>
+		</li>
+		<li>
+			<img src="img/logintype_2.png">
+			<h3>老板</h3>
+			<label class='raido_custom'>
+		    	<input type="radio" name="logintype">
+		        <s class='icon'></s>
+		    </label>
+		</li>
+		<li>
+			<img src="img/logintype_3.png">
+			<h3>收银员</h3>
+			<label class='raido_custom'>
+		    	<input type="radio" name="logintype">
+		        <s class='icon'></s>
+		    </label>
+		</li>
+		<li>
+			<img src="img/logintype_4.png">
+			<h3>后厨</h3>
+			<label class='raido_custom'>
+		    	<input type="radio" name="logintype">
+		        <s class='icon'></s>
+		    </label>
+		</li>
+	</ul>
+</section>
+
+<!-- 图片上传 -->
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+<script>
+	$(function () {
+        $('input[name=loginType]').click(function () {
+
+        });
+    });
+</script>
+</body>
+</html>

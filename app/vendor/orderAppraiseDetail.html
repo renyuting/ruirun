@@ -1,0 +1,173 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="css/member.css" type="text/css" media="screen"/>
+
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/init.js"></script>
+</head>
+<body>
+<div id="app" v-cloak>
+    <header class="common-header">
+        <div class="top_fixed">
+            <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+            <h1 class="top_title">订单评价详情</h1>
+        </div>
+    </header>
+    
+    <div class='order_title m_mt20'>评价信息</div>
+    <div class='order_dtinfo'>
+        <div class='items'>
+            <span class="title">订单号：</span>
+            <div>{{dto.orderNo}}</div>
+        </div>
+        <div class='items'>
+            <span class="title">会员名称：</span>
+            <div>{{dto.customerName}}</div>
+        </div>
+        <div class='items'>
+            <span class="title">评分：</span>
+            <div>{{dto.score}} 分</div>
+        </div>
+        <div class='items'>
+            <span class="title">评价内容：</span>
+            <div>{{dto.content}}</div>
+        </div>
+        <div class='items'>
+            <span class="title">评价时间：</span>
+            <div>{{dto.createTime}}</div>
+        </div>
+        <div class='items'>
+            <span class="title">审核状态：</span>
+            <div>{{dto.auditStateName}}</div>
+        </div>
+        <div class='items'>
+            <span class="title">审核时间：</span>
+            <div>{{dto.auditTime}}</div>
+        </div>
+    </div>
+
+    <nav class="order_button_fixed">
+        <div class='order_button'>
+            <div class='btn btn-primary' v-if="dto.auditState=='0'" @click="audit('1',dto.uuid)">审核通过</div>
+            <div class='btn btn-primary' v-if="dto.auditState=='0'" @click="audit('2',dto.uuid)">审核不通过</div>
+        </div>
+    </nav>
+</div>
+</body>
+<!-- MUI框架插件 -->
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/vue.js"></script>
+<script>
+    app = new Vue({
+        el: "#app",
+        data: {
+            dto: {}
+        },
+        created: function () {
+            var uuid = getQueryVariable("uuid");
+            getAppraiseDetail(uuid);
+        },
+        methods: {
+            //取消
+            audit(state,uuid) {
+            	var mark = "";
+            	if(state === '1'){
+            		mark = "确认审核通过 ？";
+            	}else{
+            		mark = "确认审核不通过 ？";
+            	}
+                mui.confirm(mark,'提示',['确认','取消'],function (e){
+                    if(e.index==0) {
+                        var methodName = "userfront/orderappraise/audit";
+                        doAjax(state,uuid, methodName);
+                    }
+                });
+            }
+        }
+    });
+
+    // 获取订单明细
+    function getAppraiseDetail(uuid){
+        var methodName = "userfront/orderappraise/get/" + uuid;
+        var params = {"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        $.ajax({
+            url: window.basePath + methodName,
+            type: "POST",
+            data: params,
+            dataType: "json",
+            success: function (data) {
+                if (data && data.returnCode === 1) {
+                    app.dto = data.data.result;
+                }else{
+                    if(!isLogin(data.returnCode)) {
+                        //进入登录页
+                        window.location.href = 'Login.html';
+                    } else {
+                        mui.alert(data.message, '提示');
+                    }
+                }
+            }
+        });
+    }
+
+ 	//获取url的参数
+    function getQueryVariable(variable) {
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i=0;i<vars.length;i++) {
+            var pair = vars[i].split("=");
+            if(pair[0] == variable){return pair[1];}
+        }
+        return(false);
+    }
+  
+    function doAjax(state,uuid,methodName) {
+        var params = {
+            "accessToken":sessionObtain("accessToken"),
+            "userId":sessionObtain("userId"),
+            "deviceId":sessionObtain("deviceId"),
+            "uuid":uuid,
+            "state":state
+        };
+
+        $.ajax({
+            url: window.basePath + methodName,
+            type: "POST",
+            data: params,
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                if (data && data.returnCode === 1) {
+                    mui.alert(data.message, '提示', function() {
+                        var result = data.data.result;
+                        app.dto.auditState = result.auditState;
+                        app.dto.auditStateName = result.auditStateName;
+                        app.dto.auditTime = result.auditTime;
+                    });
+                }else{
+                    if(!isLogin(data.returnCode)) {
+                        //进入登录页
+                        window.location.href = 'Login.html';
+                    } else {
+                        mui.alert(data.message, '提示');
+                    }
+                }
+            }
+        });
+    }
+
+</script>
+</html>

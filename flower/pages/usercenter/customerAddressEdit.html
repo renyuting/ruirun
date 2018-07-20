@@ -1,0 +1,184 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>编辑地址</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="../../css/member.css" type="text/css" media="screen" />
+<link href="../../css/mui.picker.min.css" rel="stylesheet" />
+<link href="../../css/mui.poppicker.css" rel="stylesheet" />
+
+<script src="../../js/jquery-1.11.1.min.js"></script>
+<script src="../../js/init.js"></script>
+</head>
+<body>
+
+<div class='page' :id="'skin_'+styleClass" v-cloak>
+    <header class="common-header blue-style">
+        <div class="top_fixed">
+            <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+            <h1 class="top_title">编辑地址</h1>
+        </div>
+    </header>
+    
+    <section class="container address_edit">
+		<section class="cells">
+			<div class="cell">
+				<div class="cell-hd">
+					<span class="cell-label">收货人</span>
+				</div>
+				<div class="cell-bd">
+					<input name="consignee" placeholder="请输入姓名" v-model="basicForm.consignee" class="input" maxlength="10"/>
+				</div>
+			</div>
+			<div class="cell">
+				<div class="cell-hd">
+					<span class="cell-label">手机</span>
+				</div>
+				<div class="cell-bd">
+					<input name="mobile" type="number" placeholder="收货人手机号" v-model="basicForm.mobile" class="input"/>
+				</div>
+			</div>
+			<div class="cell cell-access" id="showCityPicker1">
+				<div class="cell-hd">
+					<span class="cell-label">地区</span>
+				</div>
+				<div class="cell-ft" v-show='!isFirst'>{{basicForm.provinceName}} {{basicForm.cityName}} {{basicForm.regionName}}</div>
+				<div class="cell-ft" v-show='isFirst'>选择地区</div>
+			</div>
+
+			<div class="cell cell-textarea">
+				<div class="cell-hd">
+					<span class="cell-label">详细地址</span>
+				</div>
+				<textarea name="address" v-show='!showarea' v-model="basicForm.address"
+						  class="addressinput" placeholder="请写详细地址，不少于5个字" maxlength="70"></textarea>
+			</div>
+		</section>
+		<section class="cells">
+			<div class="cell cell-switch">
+				<span class="cell-bd">设为默认</span>
+				<div class="cell-ft">
+					<div class="mui-switch" :class="{'mui-active':basicForm.defaultAddress}" id="service_switch">
+						<div class="mui-switch-handle"></div>
+					</div>
+				</div>
+			</div>
+		</section>
+		<nav class="btn-area fixed">
+			<button class="btn btn-default" onclick="vm.save();">保存</button>
+			<!--<button class="btn btn-default" v-else>保存中...</button>-->
+		</nav>
+    </section>
+</div>
+
+
+<!-- 页面调用公共插件 -->
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/vue.js"></script>
+
+<!-- 地址插件 -->
+<script src="../../js/mui.picker.min.js"></script>
+<script src="../../js/mui.poppicker.js"></script>
+<script src="../../js/cityData.js"></script>
+<script type="text/javascript">
+	var editAddress = JSON.parse(sessionObtain('editAddress'));
+	var customerId = obtain('customerUuid');
+    var vm = new Vue({
+        el:".page",
+        data:{
+            styleClass:'',  // 换肤颜色
+			basicForm:{
+				customerId:customerId,
+				uuid: editAddress.uuid, //编辑页面传过来的地址uuid
+				consignee: editAddress.consignee,
+				province: editAddress.province,
+				provinceName: editAddress.provinceName,
+				city: editAddress.city,
+				cityName: editAddress.cityName,
+				region: editAddress.region,
+				regionName: editAddress.regionName,
+				street:editAddress.street,
+				streetName:editAddress.streetName,
+				address: editAddress.address,
+				zipCode:editAddress.zipCode,
+				mobile: editAddress.mobile,
+				telephone:editAddress.telephone,
+				defaultAddress: editAddress.defaultAddress,
+			},
+            cityData: '',
+            isFirst: false, //选择地区字显示， 编辑时隐藏
+            showarea: false, //textarea 自身bug 层级最高问题
+            //saveState: true, //提交保存中状态
+            from:'',//调用来源
+        },
+        mounted: function(){
+            // 获取商户皮肤值
+            var styleClass = obtain("styleClass");
+            // 设置页面皮肤值
+            this.styleClass = styleClass;
+            var from = getQueryString("from");  // 调用来源
+            this.from = from;
+
+        },
+        methods:{
+			// 保存收货地址
+            save:function(){
+				var isdefault = $("#service_switch").hasClass("mui-active");
+				this.basicForm.defaultAddress=isdefault;
+				var str = JSON.stringify(this.basicForm);
+				console.info(str);
+                PostData("/customeraddress/edit", JSON.stringify(this.basicForm), function (res) {
+                    console.log(res);
+                    if (1 === res.returnCode) {
+                        if('confirmOrder'==vm.from){
+                            history.go(-1);
+                        }else{
+                            window.location.href = 'customerAddress.html';
+                        }
+                    }
+                });
+            },
+        }
+    });
+
+    (function($, doc) {
+        $.init();
+        $.ready(function() {
+            // 选择配送地址
+            if ($("#showCityPicker1").length > 0) {
+                var cityPicker1 = new $.PopPicker({
+                        layer: 3
+                    });
+                cityPicker1.setData(cityData);
+                var showCityPickerButton = doc.getElementById('showCityPicker1');
+                showCityPickerButton.addEventListener('tap', function(event) {
+                    cityPicker1.show(function(items) {
+                        vm.isFirst = false;
+                        // 保存省市区文本值
+                        vm.basicForm.provinceName =  (items[0] || {}).text;
+                        vm.basicForm.cityName =  (items[1] || {}).text;
+                        vm.basicForm.regionName =  (items[2] || {}).text;
+                        
+                        // 保存省市区ID值
+                        vm.basicForm.province =  (items[0] || {}).value;
+                        vm.basicForm.city =  (items[1] || {}).value;
+                        vm.basicForm.region =  (items[2] || {}).value;
+                    });
+                }, false);
+            }
+        });
+    })(mui, document);
+    
+</script>
+</body>
+</html>

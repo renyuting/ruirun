@@ -1,0 +1,210 @@
+<!doctype html>
+<html>
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="../../css/shop.css" type="text/css" media="screen" />
+    
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/init.js"></script>
+</head>
+<body>
+<div id="app" class='page bg_fff' v-cloak>
+    <!-- 公共头部 -->
+    <header class="common-header blue-style">
+	    <div class="top_fixed">
+	        <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+            <h1 class="top_title">订单评价</h1>
+            <top-nav></top-nav>
+        </div>
+    </header>
+    <!-- 公共头部 end -->
+    
+    <nav class="nav_view m_mt30">
+		<div class="nav_view_item">
+			<span class="item_title">上传评价图片</span>
+		</div>
+		<div class="picture_list">
+			<div class="pho_boxs">
+				<div id="photoup">
+					<label onclick="goUpLoad()" class="imageHide"></label>
+				</div>
+			</div>
+			
+		</div>
+		<p class="fz20 picture_info">最多 5 张图片，建议尺寸 690*320px</p>
+	</nav>
+
+    <section class="note_box">
+		<textarea class="cart_note" placeholder='请输入评价内容' :maxlength="200" v-model="appraise.content"></textarea>
+	</section>
+
+	<nav class="nav_view m_mt30">
+		<div class="nav_view_item">
+			<span class="item_title">评分</span>
+			<div class="item_content" id="star">
+				<span>
+				<i class="on"></i>
+				<i class="on"></i>
+				<i class="on"></i>
+				<i class="on"></i>
+				<i class="on"></i>
+				</span>
+			</div>
+		</div>
+	</nav>
+
+    <div class="pull-p-l-20 pull-p-r-20 pull-m-t-40">
+        <div class='btn btn-block btn-yellow-bg' id="save" @click="saveAppraise()">提交评价</div>
+    </div>
+</div>
+
+<!--WAP浏览器使用-->
+<form id="formUpImgs" action="" method="post" enctype="multipart/form-data" onsubmit="AJAXSubmit(this); return false;" onchange="AJAXSubmit(this); return false;">
+	<input id="upImgs" type="file" multiple name="imgFile" style="display:none;">
+</form>
+
+</body>
+<!-- MUI框架插件 -->
+<script src="../../js/vue.js"></script>
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/wapImageUploadForOrderEvaluation.js"></script>
+<script>
+	$(function(){
+		// 上传图片url
+		$("#formUpImgs").attr("action", window.upLoadPath);
+		
+		/*点亮星星*/
+	    $("#star i").click(function() {
+	         $(this).siblings().removeClass("on");
+	         $(this).addClass("on").prevAll().addClass("on");
+	    });
+		
+	 	// 删除图片
+		$(document).on("click",".delete",function(){
+			$(this).parents(".changan").remove();
+			
+			var currentImageCount = $(this).children().find("img").length;
+			
+			if (currentImageCount < 5) {
+				$(".imageHide").show();
+			}
+		 })	
+		
+	});
+	
+    app = new Vue({
+        el: "#app",
+        data: {
+            appraise: {
+                orderUuid : "",
+                orderNo : "",
+                customerUuid : "",
+                customerName : "",
+                vendorUuid : "",
+                score : 5,
+                content : "",
+                auditState : "",
+                auditTime : "",
+                pic1 : "",
+                pic2 : "",
+                pic3 : "",
+                pic4 : "",
+                pic5 : ""
+            },
+            content:""
+        },
+        created: function () {
+            var uuid = getQueryVariable("uuid");
+         	getOrder(uuid);
+        },
+        methods: {
+            saveAppraise() {
+            	if(app.appraise.content === ""){
+            		mui.alert('请填写评价内容', '提示', '确认');
+            		return ;
+            	}
+            	// 评分
+            	var score = 0;
+            	$("#star i").each(function() {
+                    if ($(this).hasClass('on')) {
+                    	score ++;
+                    }
+                });
+            	app.appraise.score = score;
+            	// 图片保存
+            	var imgs = $("#photoup").children().find("img");
+            	for(var i = 0; i<imgs.length; i++ ){
+            		if (i == 0) {
+            			app.appraise.pic1 = $(imgs[i]).attr("src");
+           		   } else if (i == 1) {
+           				app.appraise.pic2 = $(imgs[i]).attr("src");
+           		   } else if (i == 2) {
+           				app.appraise.pic3 = $(imgs[i]).attr("src");
+           		   }else if(i == 3) {
+           				app.appraise.pic4 = $(imgs[i]).attr("src");
+           		   } else if(i == 4) {
+           				app.appraise.pic5 = $(imgs[i]).attr("src");
+           		   }
+           	    }
+        		var methodName = "/flower/orderappraise/saveAppraise";
+        		PostData(methodName, JSON.stringify(app.appraise), function (data) {
+                	if (data && data.returnCode === 1) {
+                		mui.alert(data.returnNote, '提示', function() {
+                			$("#save").addClass("disabled");
+                			window.location.href = "orderList.html";
+                        });
+                    }
+                });
+            }
+        }
+    });
+
+    // 获取订单明细
+    function getOrder(uuid){
+        var methodName = "/ordermain/get/" + uuid;
+        PostData(methodName, '', function (data) {
+        	if (data && data.returnCode === 1) {
+                var order = data.returnMessage;
+                app.appraise.orderUuid = order.uuid;
+                app.appraise.orderNo = order.entityNo;
+                app.appraise.vendorUuid = order.vendorUuid;
+                app.appraise.customerUuid = order.customerUuid;
+                app.appraise.customerName = order.customerName;
+            }
+        });
+    }
+
+ 	//获取url的参数
+    function getQueryVariable(variable) {
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i=0;i<vars.length;i++) {
+            var pair = vars[i].split("=");
+            if(pair[0] == variable){return pair[1];}
+        }
+        return(false);
+    }
+ 	
+    function goUpLoad(){
+ 	    // 获取当前图片数量
+ 	    var currentImageNum = $("#photoup").children().find("img").length;
+ 	  	if (currentImageNum >= 5) {
+ 			$(".imageHide").hide();
+ 			return;
+ 		}
+ 	    return  $("#upImgs").click();
+ 	}
+  
+</script>
+</html>

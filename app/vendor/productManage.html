@@ -1,0 +1,299 @@
+﻿<!doctype html>
+<html>
+
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="css/member.css" type="text/css" media="screen"/>
+
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/init.js"></script>
+</head>
+
+<body>
+<header class="common-header">
+    <div class="top_fixed">
+        <a class="top_icon go_back" href="storeIndex.html"></a>
+        <h1 class="top_title">商品列表</h1>
+        <a class="top_right f_color1" href="productAdd.html"><s class="add_radius_ico add"></s>新增商品</a>
+    </div>
+</header>
+<section class="common_search">
+    <input type="search" id="query" name="" placeholder="搜索商品">
+</section>
+<div id="main">
+    <script id="productList" type="text/html">
+        <ul class="nav_view product_list">
+            {{each productList as product}}
+            {{if product.state === true}}
+            <li class="nav_view_item">
+            {{else}}
+            <li class="nav_view_item disabled">
+            {{/if}}
+                <span class="item_title">
+                    {{if product.smallimg !== null && product.smallimg !== ''}}
+                    <img src="{{product.smallimg}}"/>
+                    {{else}}
+                    <img src="img/pic.png"/>
+                    {{/if}}
+                    {{if product.tag === 'zp'}}
+                    <span class='brade green'>招牌</span>
+                    {{else if product.tag === 'yh'}}
+                    <span class='brade yellow'>优惠</span>
+                    {{/if}}
+                </span>
+                <div class="item_content">
+                    <h2 class="y_name fz26">{{product.name}}<label class="label yellow">{{product.categoryName}}</label>
+						<label class="label gray">
+							{{if product.sellOut}}
+								已售罄
+							{{/if}}
+						</label>
+                    </h2>
+                    <div class="y_info">
+                        <div>
+                            <p>
+								{{if product.promotionType!=0}}
+									<span class="f_red">￥<span class="fz28">{{product.promotionPrice}}</span></span>
+									<s class="f_999">￥{{product.price}}</s>
+								{{else}}
+									<span class="f_red">￥<span class="fz28">{{product.price}}</span></span>
+								{{/if}}
+                            </p>
+                            {{if product.promotionType === 1}}
+                            <label class="label yellow_line fz16">折扣</label>
+                            {{else if product.promotionType === 2}}
+                            <label class="label yellow_line fz16">优惠</label>
+                            {{/if}}
+                        </div>
+                        <p>
+                            <a class="btn btn-black" href="javascript: void(0);" data-uuid="{{product.uuid}}" onclick="toEdit(this)">编辑</a>
+                            {{if product.state === true}}
+                            <a class="btn btn-black" href="javascript: void(0);" data-uuid="{{product.uuid}}" onclick="offShelves(this)">下架</a>
+                            {{else}}
+                            <a class="btn btn-primary" href="javascript: void(0);" data-uuid="{{product.uuid}}" onclick="onShelves(this)">上架</a>
+                            {{/if}}
+							{{if product.sellOut}}
+							<a class="btn btn-primary" href="javascript: void(0);" data-uuid="{{product.uuid}}" onclick="supply(this)">补货</a>
+							{{else}}
+							<a class="btn btn-black" href="javascript: void(0);" data-uuid="{{product.uuid}}" onclick="sellOut(this)">售空</a>
+							{{/if}}
+                        </p>
+                    </div>
+                </div>
+            </li>
+            {{/each}}
+        </ul>
+    </script>
+</div>
+
+<!-- MUI框架插件 -->
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+<script>
+    // 如果没有登录，直接跳转登录页
+    if (!sessionObtain('vendorId')) {
+        window.location.href = "Login.html";
+    }
+
+    var nowPage = 1;
+    var pageShow = 10;
+    var productList = [];
+    var hasMore = true;
+
+    $(function () {
+        queryProduct(false);
+        // 查询框绑定事件
+        $('#query').on('change', function () {
+            nowPage = 1;
+            productList = [];
+            queryProduct(false);
+        });
+        // 上拉加载更多
+        $(window).scroll(function () {
+            var scrollTop = $(this).scrollTop();
+            var scrollHeight = $(document).height();
+            var windowHeight = $(this).height();
+            if (scrollTop + windowHeight >= scrollHeight) {
+                if (hasMore === true) {
+                    queryProduct(true);
+                }
+            }
+        });
+    });
+
+    function queryProduct(isScroll) {
+        if (isScroll) {
+            nowPage++;
+        }
+        $.axs(
+            'userfront/product/list',
+            {
+                name: $.trim($('#query').val()),
+                vendorId: sessionObtain('vendorId'),
+                page: nowPage,
+                size: pageShow,
+                accessToken: sessionObtain('accessToken'),
+                userId: sessionObtain('userId'),
+                deviceId: sessionObtain('deviceId')
+            },
+            function (res) {
+                if (res.returnCode === 1) {
+                    var pager = res.data.pager;
+                    if (pager.totalNum <= pager.pageShow * pager.nowPage) {
+                        hasMore = false;
+                    }
+                    productList = productList.concat(res.data.result);
+                    var htmlstr = template('productList', {'productList': productList});
+                    $("#main").html(htmlstr);
+                }
+            }
+        );
+    }
+	function toEdit(that) {
+        var uuid = $(that).data('uuid');
+        session('productUuid', uuid);
+        window.location.href = 'productEdit.html';
+    }
+
+    function onShelves(that) {
+        var uuid = $(that).data('uuid');
+        mui.confirm(
+            '确定要上架销售此商品吗？',
+            '商品上架',
+            ['确认', '取消'],
+            function (e) {
+                if (e.index === 0) {
+                    $.axs(
+                        'userfront/product/onShelves',
+                        {
+                            uuids: JSON.stringify([uuid]),
+                            accessToken: sessionObtain('accessToken'),
+                            userId: sessionObtain('userId'),
+                            deviceId: sessionObtain('deviceId')
+                        },
+                        function (result) {
+                            if (result.returnCode === 1) {
+                                mui.toast('商品上架成功');
+                                nowPage = 1;
+                                productList = [];
+                                queryProduct(false);
+                            } else {
+                                mui.toast(result.message);
+                            }
+                        }
+                    );
+                }
+            }
+        );
+    }
+
+    function offShelves(that) {
+        var uuid = $(that).data('uuid');
+        mui.confirm(
+            '确定要下架此商品吗？',
+            '商品下架',
+            ['确认', '取消'],
+            function (e) {
+                if (e.index === 0) {
+                    $.axs(
+                        'userfront/product/offShelves',
+                        {
+                            uuids: JSON.stringify([uuid]),
+                            accessToken: sessionObtain('accessToken'),
+                            userId: sessionObtain('userId'),
+                            deviceId: sessionObtain('deviceId')
+                        },
+                        function (result) {
+                            if (result.returnCode === 1) {
+                                mui.toast('商品下架成功');
+                                nowPage = 1;
+                                productList = [];
+                                queryProduct(false);
+                            } else {
+                                mui.toast(result.message);
+                            }
+                        }
+                    );
+                }
+            }
+        );
+    }
+	
+	function sellOut(that){
+		var uuid = $(that).data('uuid');
+        mui.confirm(
+            '此商品确定已售罄吗？',
+            '商品售罄',
+            ['确认', '取消'],
+            function (e) {
+                if (e.index === 0) {
+                    $.axs(
+                        'userfront/product/sellOut',
+                        {
+                            uuids: JSON.stringify([uuid]),
+                            accessToken: sessionObtain('accessToken'),
+                            userId: sessionObtain('userId'),
+                            deviceId: sessionObtain('deviceId')
+                        },
+                        function (result) {
+                            if (result.returnCode === 1) {
+                                mui.toast('商品售罄');
+                                nowPage = 1;
+                                productList = [];
+                                queryProduct(false);
+                            } else {
+                                mui.toast(result.message);
+                            }
+                        }
+                    );
+                }
+            }
+        );
+	}
+	
+	function supply(that){
+		var uuid = $(that).data('uuid');
+        mui.confirm(
+            '此商品确定补货吗？',
+            '商品补货',
+            ['确认', '取消'],
+            function (e) {
+                if (e.index === 0) {
+                    $.axs(
+                        'userfront/product/supply',
+                        {
+                            uuids: JSON.stringify([uuid]),
+                            accessToken: sessionObtain('accessToken'),
+                            userId: sessionObtain('userId'),
+                            deviceId: sessionObtain('deviceId')
+                        },
+                        function (result) {
+                            if (result.returnCode === 1) {
+                                mui.toast('商品补货成功');
+                                nowPage = 1;
+                                productList = [];
+                                queryProduct(false);
+                            } else {
+                                mui.toast(result.message);
+                            }
+                        }
+                    );
+                }
+            }
+        );
+	}
+</script>
+</body>
+
+</html>

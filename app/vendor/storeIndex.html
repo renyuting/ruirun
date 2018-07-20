@@ -1,0 +1,257 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="css/member.css" type="text/css" media="screen"/>
+
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/init.js"></script>
+</head>
+<body>
+<div id="main" v-cloak>
+<header class="store-header">
+    <a href="vendorInfo.html">
+        <div class="y_pic"><img id="vendorLogo" :src="vendorLogo"></div>
+        <div class="y_info">
+            <h1 class="text_elli" id="vendorName">{{vendorName}}</h1>
+            <!-- <s class="y_wechat"></s> -->
+            <span id="vendorAddress">{{vendorAddress}}</span>
+        </div>
+        <span class="y_set"></span>
+    </a>
+</header>
+
+<!-- 店铺菜单 -->
+<nav class="nav_view store_nav">
+    <a class="nav_view_item navigate_right" href="productManage.html">
+		<span class="item_title">
+			<img src="img/store_ico_1.png">
+			商品管理
+		</span>
+        <div class="item_content">
+
+        </div>
+    </a>
+	<a class="nav_view_item navigate_right" href="productCategoryManage.html">
+		<span class="item_title">
+			<img src="img/store_ico_cate.png">
+			商品分类
+		</span>
+        <div class="item_content">
+
+        </div>
+    </a>
+    <a class="nav_view_item navigate_right" href="orderAppraiseManage.html">
+		<span class="item_title">
+			<img src="img/store_ico_app.png">
+			评论管理
+		</span>
+        <div class="item_content">
+
+        </div>
+    </a>
+    <a class="nav_view_item navigate_right" href="tableManage.html">
+		<span class="item_title">
+			<img src="img/store_ico_3.png">
+			桌台管理
+		</span>
+        <div class="item_content">
+
+        </div>
+    </a>
+    <a class="nav_view_item navigate_right" href="vendorIndexSet.html" v-if="'flower' != industryCate">
+        <span class="item_title">
+            <img src="img/store_ico_4.png">
+            首页广告
+        </span>
+        <div class="item_content">
+
+        </div>
+    </a>
+    <a class="nav_view_item navigate_right" href="flowerIndexSet.html" v-if="'flower' == industryCate">
+        <span class="item_title">
+            <img src="img/store_ico_4.png">
+            首页设置
+        </span>
+        <div class="item_content">
+
+        </div>
+    </a>
+</nav><!-- 店铺菜单 end -->
+
+<!-- 店铺菜单 -->
+<nav class="nav_view store_nav">
+    <a class="nav_view_item navigate_right" href="staffManage.html">
+        <span class="item_title">
+            <img src="img/store_ico_2.png">
+            员工管理
+        </span>
+        <div class="item_content">
+
+        </div>
+    </a>
+    <a class="nav_view_item navigate_right" href="storeSetting.html">
+		<span class="item_title">
+			<img src="img/store_ico_8.png">
+			设置
+		</span>
+        <div class="item_content">
+
+        </div>
+    </a>
+    <a class="nav_view_item navigate_right" @click="connectPrint">
+		<span class="item_title">
+			<img src="img/print.png">
+			连接打印机
+		</span>
+        <div class="item_content">
+            {{printStateName}}
+        </div>
+    </a>
+    <a class="nav_view_item" href="javascript: logout();">
+		<span class="item_title">
+			<img src="img/logout.png">
+			退出登录
+		</span>
+        <div class="item_content">
+
+        </div>
+    </a>
+</nav><!-- 店铺菜单 end -->
+
+<!-- 底部导航 -->
+<footer class="foot_nav_fixed">
+    <nav class="foot_nav">
+        <a class="items" href="index.html"><s class="ico1"></s>首页</a>
+        <a class="items" href="orderList.html"><s class="ico2"></s>订单</a>
+        <a class="items" href="memberManage.html"><s class="ico3"></s>会员</a>
+        <a class="items cur" href="storeIndex.html"><s class="ico4"></s>管理</a>
+    </nav>
+</footer>
+<!-- 底部导航 end -->
+</div>
+
+<!-- 时间选择插件 -->
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/vue.js"></script>
+<script type="text/javascript">
+
+    var vm = new Vue({
+        el:"#main",
+        data:{
+            vendorName:'', //商户名
+            vendorAddress:'',//商户地址
+            vendorLogo:'',//商户logo
+            printState:'0', //打印机状态编码，1是连接成功，0是未连接
+            printStateName:'未连接',//打印机状态名称
+			industryCate: '',
+        },
+        mounted: function(){
+            this.vendorName = sessionObtain('vendorName');
+            this.vendorAddress = sessionObtain('vendorAddress');
+            this.vendorLogo = sessionObtain('vendorLogo');
+			this.industryCate = sessionObtain('industryCate');
+
+            //获取打印机状态信息
+            this.getPrintStateInfo();
+        },
+        methods:{
+            //连接打印机
+            connectPrint: function () {
+                if (/(iPhone|iPad|iPod|iOS)/i.test(navigator.userAgent)) {
+                    jsobj.linkPrint();
+                } else if (/(Android)/i.test(navigator.userAgent)) {
+                    jsobj.linkPrint();
+                }
+            },
+
+            //获取打印机状态信息
+            getPrintStateInfo:function () {
+                var that = this;
+                var state;
+                if (/(iPhone|iPad|iPod|iOS)/i.test(navigator.userAgent)) {
+                    state = jsobj.getPrintState();
+                } else if (/(Android)/i.test(navigator.userAgent)) {
+                    state = jsobj.getPrintState();
+                }
+                if(state=='1'){
+                    that.printState = '1';
+                    that.printStateName = '连接成功';
+                }else{
+                    that.printState = '0';
+                    that.printStateName = '未连接';
+                }
+            }
+        }
+    });
+
+    function setPrintState(state) {
+        if(state=='1'){
+            vm.printState = '1';
+            vm.printStateName = '连接成功';
+        }else{
+            vm.printState = '0';
+            vm.printStateName = '未连接';
+        }
+    }
+
+    // 退出登录
+    function logout() {
+        var accessToken = sessionObtain('accessToken');
+        var userId = sessionObtain('userId');
+        var methodName = "userfront/logout";
+        var params = {"accessToken": accessToken, "userId": userId};
+        mui.confirm(
+            '确定要退出登录吗？',
+            '退出登录',
+            ['确认', '取消'],
+            function (e) {
+                if (e.index === 0) {
+                    $.ax(
+                        methodName,
+                        params,
+                        false,
+                        "post",
+                        "json",
+                        function (data) {
+                            mui.toast(data.message);
+                            setTimeout(function () {
+								clear("accessToken");
+								clear("deviceId");
+								clear("userId");
+								clear("vendorId");
+								clear("loginName");
+								clear("password");
+                                window.location.href = "Login.html";
+                            }, 1000);
+
+                            invokeAppLogout();
+                        }
+                    );
+                }
+            }
+        )
+    }
+    
+    function invokeAppLogout() {
+        if (/(iPhone|iPad|iPod|iOS)/i.test(navigator.userAgent)) {
+            jsobj.toLogout();
+        } else if (/(Android)/i.test(navigator.userAgent)) {
+            jsobj.toLogout();
+        }
+    }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!doctype html>
+<html>
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" type="text/css" href="../../css/amazeui.swiper.min.css">
+    <link rel="stylesheet" href="../../css/shop.css" type="text/css" media="screen"/>
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/init.js"></script>
+    <script src="https://res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
+</head>
+<body>
+<div class="page" id="skin_red" v-cloak>
+    <header>
+        <div class='store_info'>
+            <div class='image'>
+                <a href="javascript:wxShare()"><img :src="storeLogo" id="logo"/></a>
+            </div>
+            <div class='name'>{{vendorName}}</div>
+            <a href="javascript:wxShare()">分享</a>
+        </div><!--商户基本信息 end -->
+
+
+        <!-- 店铺促销优惠  -->
+        <div class='store_Offer clearfix' v-if="vendorDiscount.ljOpen || vendorDiscount.mjOpen">
+            <div class="fl zaddwfl">
+                <div class='items' v-if="vendorDiscount.mjOpen">
+                    <span class='Offer_label'>满减</span>
+                    <span class='fz20 color_666'>满{{vendorDiscount.money1}}减{{vendorDiscount.free1}}，满{{vendorDiscount.money2}}减{{vendorDiscount.free2}}，满{{vendorDiscount.money3}}减{{vendorDiscount.free3}}</span>
+                </div>
+                <div class='items' v-if="vendorDiscount.ljOpen">
+                    <span class='Offer_label green'>新客</span>
+                    <span class='fz20 color_666'>本店新用户立减{{vendorDiscount.ljFree}}元</span>
+                </div>
+
+            </div>
+            <div class='Offer_more fr'>
+                {{vendorDiscount.discountNum}}个优惠
+            </div>
+        </div>
+        <!-- 店铺促销优惠 end -->
+        <!-- 用户中心悬浮  -->
+        <nav class='user_fixed' @click="toUserCenter">
+            <button type="button"></button>
+        </nav>
+        <!-- 用户中心悬浮 end -->
+    </header>
+
+    <main class="bg_fff">
+        <!-- 店铺滚动广告  -->
+        <section class="store_swiper">
+            <template>
+                <div class="swiper-container m_banner">
+                    <div class="swiper-wrapper" id="m_banner">
+                        <div class="swiper-slide" v-for="(item,index) in vendorBasic.adverts">
+                            <a href="javascript:void(0)">
+                                <img :src="item">
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Add Pagination -->
+                    <div class="y_qhdiv swiper-pagination"></div>
+                </div><!--首页广告 end-->
+            </template>
+        </section>
+
+        <!-- 选择就餐方式  -->
+        <section class='buy_type clearfix'>
+            <button class='type_btn red fl' onclick="vm.orderInStore()">店内点餐</button>
+            <button class='type_btn yellow fr' onclick="vm.orderOutStore()">外卖点餐</button>
+        </section>
+        <!-- 选择就餐方式 end -->
+
+
+    </main>
+
+    <!-- 店铺信息  -->
+    <div class='store_detial cells nomargin'>
+        <div class='cell cell-access' onclick="vm.showMap()">
+            <div class="cell-hd">
+                <img src='../../images/area.png'/>
+            </div>
+            <div class="cell-bd">
+                {{vendorAddress}}
+            </div>
+            <div class="cell-ft">
+            </div>
+        </div>
+        <a class='cell cell-access' :href="'tel:' + vendorMobile">
+            <div class="cell-hd">
+                <img src='../../images/index_phone.png'/>
+            </div>
+            <div class="cell-bd">
+                {{vendorMobile}}
+            </div>
+            <div class="cell-ft">
+            </div>
+        </a>
+        <div class='cell'>
+            <div class="cell-hd">
+                <img src='../../images/time.png'/>
+            </div>
+            <div class="cell-bd">
+                营业时间
+            </div>
+            <div class="cell-ft">
+                {{businessTime}}
+            </div>
+        </div>
+    </div><!-- 店铺信息 end -->
+</div>
+<!-- 页面调用公共插件 -->
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/amazeui.swiper.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/vue.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el: ".page",
+        data: {
+            styleClass: '',  // 换肤颜色
+            loadingHidden: false,  // 页面加载中状态是否隐藏
+            vendorName: '',  // 商户名称
+            monthSell: '',    // 商户月售
+            storeLogo: '',    // 商户LOGO
+            storeId: '',    // 商户ID
+            vendorBasic: '',  // 商户外卖设置基础信息
+            vendorDiscount: '', // 商户优惠信息
+            vendorMobile: '',      // 商户店铺联系电话
+            vendorAddress: '',    // 商户店铺地址
+            longitude: '',     // 商户店铺经度
+            latitude: '',       //商户店铺纬度
+            businessTime: '',   // 营业时间
+        },
+        mounted: function () {
+            // 获取商户皮肤值
+            var styleClass = obtain("styleClass")
+            // 设置页面皮肤值
+            this.styleClass = styleClass
+            this.getVendorInfo();
+            // 如果是分享页面进来，更新邀请人
+            this.updateCustomerInviter();
+            // 微信分享
+            this.wxshare();
+            //首页轮播
+            var swiper = new Swiper('.m_banner', {
+                pagination: '.y_qhdiv',
+                autoplay: 3000,//可选选项，自动滑动
+                paginationClickable: true,
+                observer: true
+            });
+        },
+        methods: {
+            // 加载欢迎页面的数据
+            getVendorInfo: function () {
+                var vendorUuid = getVendorId();
+                PostData("/vendor/getVendor/" + vendorUuid, null, function (res) {
+                    var vendor = res.returnMessage;
+                    // 获取商户皮肤
+                    var storeStyle = vendor.vendorStyle;
+                    var styleClass = storeStyle == "1" && "red" || storeStyle == "2" && "yellow" || storeStyle == "3" && "green" || "orange";
+                    var NavBgColor = storeStyle == "1" && "#D80602" || storeStyle == "2" && "#FFB914" || storeStyle == "3" && "#70B303" || "#FF9F3D";
+					storage('styleClass', styleClass)  // 商户皮肤值
+                    vm.vendorName = vendor.vendorName;  // 商户名称
+                    vm.monthSell = vendor.monthSell;   // 商户月售
+                    vm.storeLogo = vendor.logoImage || '';    // 商户LOGO
+                    vm.storeId = vendor.uuid;    // 商户ID
+                    vm.styleClass = styleClass;    // 商户皮肤
+                    vm.vendorBasic = vendor.vendorBasic;  // 商户外卖设置基础信息
+                    vm.vendorDiscount = vendor.vendorDiscount; // 商户优惠信息
+                    vm.vendorMobile = vendor.vendorInfo.contactMobile;      // 商户店铺联系电话
+                    vm.vendorAddress = vendor.vendorInfo.contactAddress;    // 商户店铺地址
+                    vm.longitude = parseFloat(vendor.vendorInfo.longitude);     // 商户店铺经度
+                    vm.latitude = parseFloat(vendor.vendorInfo.latitude);       //商户店铺纬度
+                    vm.businessTime = vendor.vendorInfo.beginTime + " - " + vendor.vendorInfo.endTime;   // 营业时间
+                }, "GET");
+            },
+         	// 如果是分享页面进来，更新邀请人
+            updateCustomerInviter: function () {
+                var inviterUuid = getQueryString("inviterUuid");
+                if(sessionObtain('loginCustomerUuid') && inviterUuid != null && inviterUuid != 'null' && inviterUuid !== "" && inviterUuid != sessionObtain('loginCustomerUuid')){
+                    PostData("/customer/updateCustomerInviter", {"customerUuid":sessionObtain('loginCustomerUuid'),"inviterUuid":inviterUuid}, function (res) {
+                    },"post",null,"application/x-www-form-urlencoded");
+                }
+            },
+            toUserCenter: function () {
+                if (sessionObtain('loginCustomerUuid')) {
+                    window.location.href = "../usercenter/index.html";
+                } else {
+                    window.location.href = "../login/wechat.html?page=usercenter&inviterUuid="+getQueryString("inviterUuid");
+                }
+            },
+            /**
+             * 店内点餐
+             */
+            orderInStore: function (e) {
+                storage('outStore', 'false');
+                if (sessionObtain('loginCustomerUuid')) {
+                    window.location.href = "index.html";
+                } else {
+                    window.location.href = "../login/wechat.html?page=shopindex&inviterUuid="+getQueryString("inviterUuid");
+                }
+            },
+            /**
+             * 外卖点餐
+             */
+            orderOutStore: function (e) {
+                storage('outStore', 'true');
+                if (sessionObtain('loginCustomerUuid')) {
+                    window.location.href = "index.html";
+                } else {
+                    window.location.href = "../login/wechat.html?page=shopindex&inviterUuid="+getQueryString("inviterUuid");
+                }
+            },
+            /**
+             * 微信分享
+             */
+            wxshare: function (e) {
+            	var url = location.href.split('#')[0];
+            	var methodName = window.basePath + "/wechat/getWxShare";
+            	$.ajax({
+                    url: methodName,
+                    type: "POST",
+                    dataType: 'json',
+                    data: {url:url},
+                    success: function (res) {
+                    	if (res.code == '0') {
+                            wx.config({
+                                debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+                                appId: res.appId,
+                                timestamp: res.timestamp, // 必填，生成签名的时间戳
+                                nonceStr: res.nonceStr, // 必填，生成签名的随机串
+                                signature: res.signature,// 必填，签名
+                                jsApiList: ['onMenuShareTimeline',
+                                    'onMenuShareAppMessage']// 必填，需要使用的JS接口列表
+                            });
+                            wx.ready(function () {
+                            	var toUrl = "https://foods.ryskoo.com/foods/pages/shop/welcome.html?vendorUuid=ad7dc50c662f4118a502ac123773c022";
+                            	if(sessionObtain('loginCustomerUuid')){
+                            		toUrl = toUrl + "&inviterUuid="+sessionObtain('loginCustomerUuid');
+                            	}
+                            	var obj = {
+                                    title: '大家好，我是小强', // 分享标题
+                                    desc: '我帅吗，点击打开这个链接好吗，有我的落照。', // 分享描述
+                                    link: toUrl, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+                                    // 该链接是重定向链接，因为需要获取用户code，但是该链接又无法直接写微信获取code的链接，
+                                    // 所以需要点击后重新加载新的页面，来实现重定向，重新打开获取code的微信链接，实现获取用户信息的功能；
+                                    imgUrl: 'http://b158.photo.store.qq.com/psb?/V13vz8vU39fun5/SlXVQZpOdX2ujYENl8*fF7oRS7zQxaC7Mb1JdYYmBnY!/b/dDkUNl5cLAAA&bo=QQHzAAAAAAADB5E!&rf=viewer_4', // 分享图标
+                                    fail: function (res) {
+                                        alert(JSON.stringify(res));
+                                    }
+                                };
+                                // 2.1 监听“分享给朋友”，按钮点击、自定义分享内容及分享结果接口
+                                wx.onMenuShareAppMessage(obj);
+                                // 2.2 监听“分享到朋友圈”按钮点击、自定义分享内容及分享结果接口
+                                wx.onMenuShareTimeline(obj);
+                            })
+                        }
+                	}
+            	});
+            },
+            /**
+             * 显示地图
+             */
+            showMap: function (e) {
+                var address = vm.vendorAddress;
+                var lng = vm.longitude;
+                var lat = vm.latitude;
+                /*session('vendorName', vm.vendorName);
+                session('address', address);
+                session('longitude', longitude);
+                session('latitude', latitude);
+                window.location.href="map.html";*/
+                var titleName = vm.vendorName;
+                var content = address;
+                window.location.href = "http://api.map.baidu.com/marker?location=" + lat + "," + lng + "&title=" + titleName + "&content=" + content + "&output=html"
+            }
+        }
+    });
+    
+    //首页轮播
+    /*var swiper = new Swiper('.m_banner', {
+        pagination: '.y_qhdiv',
+        autoplay: 3000,//可选选项，自动滑动
+        paginationClickable: true
+    });*/
+    
+</script>
+</body>
+</html>

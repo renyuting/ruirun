@@ -1,0 +1,165 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="css/member.css" type="text/css" media="screen" />
+
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/init.js"></script>
+</head>
+<body>
+<header class="common-header">
+	<div class="top_fixed">
+		<a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+        <h1 class="top_title">规格设置</h1>
+    </div>
+</header>
+ 
+ <section class="spec_seeting" id="attrs">
+ 	<!--<div class="spec_items">
+	 	<h2>分量</h2>
+	 	<div class='check_box'>
+		    <label class='check_custom'>
+		    	<input type="checkbox" name="spec1" checked>
+		        <span class='name'>大份</span>
+		    </label>
+		    <label class='check_custom'>
+		    	<input type="checkbox" name="spec1">
+		        <span class='name'>中份</span>
+		    </label>
+		    <label class='check_custom'>
+		    	<input type="checkbox" name="spec1">
+		        <span class='name'>小份</span>
+		    </label>
+		</div>
+	</div>
+	<div class="spec_items">
+	 	<h2>口味</h2>
+	 	<div class='check_box'>
+		    <label class='check_custom'>
+		    	<input type="checkbox" name="spec1" checked>
+		        <span class='name'>特辣</span>
+		    </label>
+		    <label class='check_custom'>
+		    	<input type="checkbox" name="spec1">
+		        <span class='name'>中辣</span>
+		    </label>
+		    <label class='check_custom'>
+		    	<input type="checkbox" name="spec1">
+		        <span class='name'>微辣</span>
+		    </label>
+		    <label class='check_custom'>
+		    	<input type="checkbox" name="spec1">
+		        <span class='name'>不辣</span>
+		    </label>
+		    <label class='check_custom'>
+		    	<input type="checkbox" name="spec1">
+		        <span class='name'>微辣</span>
+		    </label>
+		    <label class='check_custom'>
+		    	<input type="checkbox" name="spec1">
+		        <span class='name'>不辣</span>
+		    </label>
+		</div>
+	</div>
+	<div class="spec_items">
+	 	<h2>偏好</h2>
+	 	<div class='check_box'>
+		    <label class='check_custom'>
+		    	<input type="checkbox" name="spec1" checked>
+		        <span class='name'>多加葱</span>
+		    </label>
+		    <label class='check_custom'>
+		    	<input type="checkbox" name="spec1">
+		        <span class='name'>少加葱</span>
+		    </label>
+		    <label class='check_custom'>
+		    	<input type="checkbox" name="spec1">
+		        <span class='name'>不加葱</span>
+		    </label>
+		</div>
+	</div>-->
+ </section>
+
+<!-- 保存按钮 -->
+<!--<nav class="edit_btn2">
+	<a href="##" class="btn btn-white">保存</a>
+</nav>-->
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+
+<!-- MUI框架插件 -->
+<script src="js/mui.min.js"></script>
+<script type="text/javascript">
+	$(function(){
+		var accessToken = sessionObtain('accessToken');
+        var userId =  sessionObtain('userId');
+		var deviceId = sessionObtain('deviceId');
+		var vendorId = sessionObtain('vendorId');
+		//var vendorId = 'ad7dc50c662f4118a502ac123773c022';
+		var methodName = "/userfront/vendortemplaterel/getVendorTemplateRel";
+	    //var params = {"vendorUuid":vendorId,"accessToken":"b439d2d4ec0bd3c633d405b8423c1e15","userId":"5fb84a12fede4be598e7795c086a58d3","deviceId":"12121"};
+		var params = {"vendorUuid":vendorId,"accessToken":accessToken,"userId":userId,"deviceId":deviceId};
+		$.ax(
+			methodName,
+			params,
+			false,
+			"post",
+			"json", 
+			function(data){
+			  if (1 == data.returnCode) {
+				var htmlstr = "";
+				var list = data.data.result;
+				for(var i =0;i<list.length;i++){
+					var attr = list[i];
+					var values = attr.details;
+					htmlstr += "<div class=\"spec_items\"><h2>"+attr.attrName+"</h2>";
+					htmlstr += "<div class='check_box'>";
+					for(var j=0;j<values.length;j++){
+						var obj = values[j];
+						htmlstr += "<label class='check_custom'><input type=\"checkbox\" name=\"spec1\" id=\""+obj.uuid+"\" onclick='pitch(this)'";
+						if(obj.status){
+							htmlstr += "checked";
+						}
+						htmlstr += "><span class='name'>"+obj.value+"</span></label>";
+					}
+					htmlstr += "</div></div>";
+				}
+				$("#attrs").html(htmlstr);
+			  }
+			}
+		 );
+	});
+	// 改变checkbox的选中状态
+	function pitch(obj){
+		var accessToken = sessionObtain('accessToken');
+        var userId =  sessionObtain('userId');
+		var deviceId = sessionObtain('deviceId');
+		var methodName = "/userfront/vendortemplaterel/changeStatus";
+	    //var params = {"detailUuid":obj.id,"status":obj.checked,"accessToken":"b439d2d4ec0bd3c633d405b8423c1e15","userId":"5fb84a12fede4be598e7795c086a58d3","deviceId":"12121"};
+		var params = {"detailUuid":obj.id,"status":obj.checked,"accessToken":accessToken,"userId":userId,"deviceId":deviceId};
+		$.ax(
+			methodName,
+			params,
+			false,
+			"post",
+			"json", 
+			function(data){
+			  if (1 == data.returnCode) {
+			  }
+			}
+		);
+	}
+</script>
+</body>
+</html>

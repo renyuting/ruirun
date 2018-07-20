@@ -1,0 +1,78 @@
+﻿<!doctype html>
+<html>
+
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="css/member.css" type="text/css" media="screen"/>
+
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/init.js"></script>
+</head>
+
+<body>
+<div id="app">
+
+    <header class="common-header">
+        <div class="top_fixed">
+            <a class="top_icon go_back" href="couponManage.html"></a>
+            <h1 class="top_title">优惠券明细</h1>
+        </div>
+    </header>
+
+    <section class="common_search">
+        <input type="search" id="query" name="" placeholder="会员名称/订单号">
+    </section>
+
+    <ul class="couponList">
+        <li>
+            <p class="user">疯狂的木易</p>
+            <p class="f_999">优惠券号：HUI7876272</p>
+            <p class="f_999">订单编号：HUIYSH1827192718</p>
+            <span class="label yellow">未使用</span>
+        </li>
+        <li>
+            <p class="user">疯狂的木易</p>
+            <p class="f_999">优惠券号：HUI7876272</p>
+            <p class="f_999">订单编号：HUIYSH1827192718</p>
+            <span class="label gray">已使用</span>
+        </li>
+        <li>
+            <p class="user">疯狂的木易</p>
+            <p class="f_999">优惠券号：HUI7876272</p>
+            <p class="f_999">订单编号：HUIYSH1827192718</p>
+            <span class="label yellow">未使用</span>
+        </li>
+        <li>
+            <p class="user">疯狂的木易</p>
+            <p class="f_999">优惠券号：HUI7876272</p>
+            <p class="f_999">订单编号：HUIYSH1827192718</p>
+            <span class="label gray">已使用</span>
+        </li>
+    </ul>
+</div>
+
+<!-- MUI框架插件 -->
+<script src="js/vue.js"></script>
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script type="text/javascript">
+    new Vue({
+        el: "#app",
+        data: {
+            couponCur: 1,  // 优惠券列表显示店铺还是菜品
+        }
+    })
+</script>
+
+</body>
+</html>

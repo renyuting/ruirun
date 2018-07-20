@@ -1,0 +1,160 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>会员中心首页</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="../../css/member.css" type="text/css" media="screen" />
+
+<script src="../../js/jquery-1.11.1.min.js"></script>
+<script src="../../js/init.js"></script>
+</head>
+<body>
+
+<div id="app" v-cloak>
+    <section class='member_header'>
+        <img class='y_img' :src="image">
+        <p>{{nickName}}</p>
+    </section>
+
+    <nav class='member_section'>
+      <div class='item'>
+        <p class='price'>{{statistics.time ? statistics.time : 0}}</p>
+        消费次数
+      </div>
+      <div class='item'>
+        <p class='price'>￥{{statistics.money ? statistics.money : 0 | NumberFmt}}</p>
+        消费金额
+      </div>
+      <div class='item'>
+        <p class='price'>{{statistics.usableIntegral ? statistics.usableIntegral : 0}}</p>
+        积分
+      </div>
+    </nav>
+
+    <nav class='member_nav cells'>
+        <a href="orderList.html" class='cell cell-access'>
+            <div class="cell-hd">
+                <img src='../../images/user_ico_1.png'>
+            </div>
+            <div class="cell-bd">
+                我的订单
+            </div>
+            <div class="cell-ft color_666">
+
+            </div>
+        </a>
+        <a href="orderAppraiseManage.html" class='cell cell-access'>
+            <div class="cell-hd">
+                <img src='../../images/user_ico_app.png'>
+            </div>
+            <div class="cell-bd">
+                我的评价
+            </div>
+            <div class="cell-ft color_666">
+
+            </div>
+        </a>
+        <a href="integral.html" class='cell cell-access'>
+            <div class="cell-hd">
+                <img src='../../images/user_ico_2.png'>
+            </div>
+            <div class="cell-bd">
+                我的积分
+            </div>
+            <div class="cell-ft color_666">
+            </div>
+        </a>
+        <a :href="'customerAddress.html?customerId='+customerUuid" class='cell cell-access'>
+            <div class="cell-hd">
+                <img src='../../images/user_ico_3.png'>
+            </div>
+            <div class="cell-bd">
+                收货地址
+            </div>
+            <div class="cell-ft color_666">
+
+            </div>
+        </a>
+        <a href="javascript: clearStorage();" class='cell cell-access'>
+            <div class="cell-hd">
+                <img src='../../images/user_ico_3.png'>
+            </div>
+            <div class="cell-bd">
+                clearStorage(测试用)
+            </div>
+            <div class="cell-ft color_666">
+
+            </div>
+        </a>
+    </nav>
+
+
+    <!-- 底部导航 -->
+    <footer class="foot_nav_fixed">
+        <nav class="foot_nav">
+            <a class="items" href="../shop/welcome.html"><s class="ico1"></s>首页</a>
+            <a class="items" href="../shop/index.html"><s class="ico2"></s>点餐</a>
+            <a class="items" href="../usercenter/orderList.html"><s class="ico3"></s>订单</a>
+            <a class="items cur" href="../usercenter/index.html"><s class="ico4"></s>我的</a>
+        </nav>
+    </footer>
+    <!-- 底部导航 end -->
+</div>
+
+<!-- 页面调用公共插件 -->
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/vue.js"></script>
+<script src="../../js/filter.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            image:'',
+            nickName:'',
+            customerUuid:'',
+            vendorUuid:'',
+            statistics:{}
+        },
+        mounted: function(){
+            this.image = obtain("avatarUrl");
+            this.nickName = obtain("nickName");
+            this.customerUuid = obtain("customerUuid");
+            this.vendorUuid = obtain('vendorUuid');
+
+            this.getStatistics();
+        },
+        methods:{
+            /**
+             * 获取会员统计信息
+             */
+            getStatistics: function () {
+                var qm = {
+                    "customerUuid": this.customerUuid,
+                    "vendorUuid": this.vendorUuid
+                }
+
+                PostData("/integral/getStatistics", qm, function (res) {
+                    if (res.returnMessage != null){
+                        vm.statistics = res.returnMessage;
+                    }
+
+                }, "", "", "application/x-www-form-urlencoded")
+            }
+        }
+    });
+    function clearStorage() {
+        localStorage.clear();
+    }
+</script>
+</body>
+</html>

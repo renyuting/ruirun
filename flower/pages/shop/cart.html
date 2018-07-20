@@ -1,0 +1,312 @@
+<!doctype html>
+<html>
+<head>
+<title>鲜花蛋糕-极速配送</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" type="text/css" href="../../css/amazeui.swiper.min.css">
+<link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="../../css/shop.css" type="text/css" media="screen" />
+
+<script src="../../js/jquery-1.11.1.min.js"></script>
+<script src="../../js/init.js"></script>
+</head>
+<body>
+<div class="page" v-cloak>
+    <!-- 公共头部 -->
+    <header class="common-header">
+        <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+        <h1 class="top_title">购物车</h1>
+        <span class="top_icon top_right fz30 m_edit" v-show="!cartEdit" @click="cartEdit=true">编辑</span>
+        <span class="top_icon top_right fz30 m_complete" v-show="cartEdit" @click="cartEdit=false">完成</span>
+    </header>
+    <!-- 公共头部 end -->
+
+    <!-- 购物车商品 -->
+    <section class="cart_list" v-if="cartData.detailList.length > 0">
+        <ol class="m_cartlist">
+            <li v-for="(item,idx) in cartData.detailList">
+                <label class="cart_radio" :class="{'active':item.checked}" @click="checkProduct(idx)">
+                    <b class="m_ico"></b>
+                </label>
+                <div class="clearfix">
+                    <div class="m_pic">
+                        <img :src="item.image">
+                    </div>
+                    <div class="tit">
+                        <h3>{{item.productName}}</h3>
+                        <div class="price">
+                            <b>￥</b>{{item.productPrice|NumberFmt}}
+                            <del class="del fz22" v-if="item.productPrice!=item.nativePrice">￥{{item.nativePrice|NumberFmt}}</del>
+                        </div>
+                        <div class="numbox">
+                            <span class="numbox-minus" @click="reduceCart(idx)"></span>
+                            <span class="numbox-input">{{item.buyNum}}</span>
+                            <span class="numbox-plus" @click="addCart(idx)"></span>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ol>
+    </section><!-- 购物车商品 end -->
+
+    <!-- 购物车商品为空 -->
+    <section class="cart_nothing" v-else>
+        <s class="ico"></s>
+        <p class="info">不要让你的心意空空如也...</p>
+        <a href="index.html" class="btn btn-yellow">去挑选礼物</a>
+    </section>
+    
+    <!--底部按钮-->
+    <section class="cart_footer">
+        <div class="footer_total" v-show="!cartEdit">
+            <label class="cart_radio fl" :class="{'active':allCheck}" @click="doAllCheck">
+                <b class="m_ico"></b>全选
+            </label>
+            <a @click="goConfirmOrder" class="fr btn btn-yellow-bg" :class="{'disabled':cartData.totalPrice<=0}">结算({{cartData.totalNum}})</a>
+            <div class="fr footer_price">
+                <label class="fl">
+                    <p>总计</p>
+                    <span class="color_999">(不含运费)</span>
+                </label>
+                <span class="fl price"><b>￥</b><span class="fz40">{{cartData.totalPrice}}</span></span>
+            </div>
+        </div>
+        <div class="footer_complete" v-show="cartEdit">
+            <label class="cart_radio fl" :class="{'active':allCheck}" @click="doAllCheck">
+                <b class="m_ico"></b>全选
+            </label>
+            <a @click="removeCart" class="fr btn btn-gray-bg">删除</a>
+            <!-- <a href="##" class="fr btn btn-yellow-bg">加入收藏</a> -->
+        </div>
+    </section><!--底部按钮 end-->
+</div>
+
+<!-- 页面调用公共插件 -->
+<script src="../../js/vue.js"></script>
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/jquery.cookie.js"></script>
+<script src="../../js/filter.js"></script>
+
+<script type="text/javascript">
+    new Vue({
+        el:".page",
+        data:{
+            cartEdit: false,  // 购物车是否处理编辑商品状态
+            vendorUuid:'',  //商户uuid
+            // 购物车中商品信息初始数据
+            cartData: {
+                totalNum: 0,   // 购物车内商品数量
+                detailList: [],   // 购物车商品列表
+                distributionPrice: 0,  // 商户默认配送费用
+                distributionPriceNew: 0,  // 商户配送费减免后配送费用
+                totalPrice: 0,  // 购物车商品总价
+                allPrice:0,// 购物车总价
+                vendorName: '',  // 商户名称
+                vendorUuid: '',  // 商户id
+            },
+            allCheck:false, //全选标识
+        },
+        mounted: function(){
+            var that = this;
+            var vendorUuid = obtain("vendorUuid");  // 商户uuid
+            that.vendorUuid = vendorUuid;
+            var cartData = JSON.parse(obtain('cartData' + vendorUuid));
+            if (!!cartData) {
+                that.cartData = cartData;
+                that.flushCart(that.cartData);
+            }
+        },
+        methods: {
+            //刷新购物车信息
+            flushCart: function(cartData){
+                var that = this;
+                PostData("/flower/cart/get", JSON.stringify(cartData), function (res) {
+                    if (1 == res.returnCode) {
+                        var cart = res.returnMessage;  // 购物车对象
+                        if(cart){
+                            that.cartData = cart;
+                        }else{
+                            that.cartData.detailList = [];
+                            that.cartData.totalPrice = 0;
+                            that.cartData.totalNum = 0;
+                        }
+                        // 将购物车商品信息存储到本地存储中
+                        storage('cartData' + that.vendorUuid, JSON.stringify(that.cartData));
+                    }
+                    flushAllCheck(that);
+                    ObtainTotlePrice(that);
+                },'','1');
+            },
+            //选中商品
+            checkProduct:function (index) {
+                var that = this;
+                var detailList = that.cartData.detailList;
+                that.cartData.detailList[index].checked=!detailList[index].checked;
+
+                // 将购物车商品信息存储到本地存储中
+                storage('cartData' + that.vendorUuid, JSON.stringify(that.cartData));
+
+                flushAllCheck(that);
+                ObtainTotlePrice(that);
+            },
+            //全选
+            doAllCheck:function () {
+                var that = this;
+                that.allCheck = !that.allCheck;
+                for(var i=0;i<that.cartData.detailList.length;i++){
+                    that.cartData.detailList[i].checked = that.allCheck;
+                }
+                // 将购物车商品信息存储到本地存储中
+                storage('cartData' + that.vendorUuid, JSON.stringify(that.cartData));
+                ObtainTotlePrice(that);
+            },
+            // 商品增加数量
+            addCart: function (index) {
+                var that = this;
+                var item = that.cartData.detailList[index];
+                var sellout = item.sellOut;  // 商品是否已售罄
+                if (!!sellout) return;
+
+                var totalNum = that.cartData.totalNum;   // 购物车商品总数
+
+                item.buyNum++;
+                item.totalPrice = (parseFloat(item.totalPrice) + parseFloat(item.productPrice)).toFixed(2);
+
+                totalNum++;
+
+                that.cartData.totalNum = totalNum;
+
+                // 将购物车商品信息存储到本地存储中
+                storage('cartData' + that.vendorUuid, JSON.stringify(that.cartData));
+
+                ObtainTotlePrice(that);
+            },
+            //商品数量减少
+            reduceCart:function (index) {
+                var that = this;
+                var item = that.cartData.detailList[index];
+                if (item.buyNum==1){
+                    that.cartData.detailList.splice(index, 1);
+                }
+
+                var totalNum = that.cartData.totalNum;   // 购物车商品总数
+
+                item.buyNum--;
+                item.totalPrice = (parseFloat(item.totalPrice) - parseFloat(item.productPrice)).toFixed(2);
+
+                totalNum--;
+
+                that.cartData.totalNum = totalNum;
+
+                // 将购物车商品信息存储到本地存储中
+                storage('cartData' + that.vendorUuid, JSON.stringify(that.cartData));
+
+                ObtainTotlePrice(that);
+            },
+            //删除购物车商品
+            removeCart:function () {
+                var that = this;
+                var checkNum = 0;
+                for (var i = 0; i < that.cartData.detailList.length; i++) {
+                    var value = that.cartData.detailList[i];
+                    if(value.checked){
+                        checkNum++;
+                        break;
+                    }
+                }
+                if(checkNum==0){
+                    mui.toast('您还没有选择商品哦');
+                    return;
+                }
+                mui.confirm('删除购物车所选商品？', '提示', ['确认','取消'], function(e) {
+                    if (e.index == 0) {
+
+                        //储存不需要删除的商品
+                        var notRemoveList = [];
+                        for (var dNum = 0; dNum < that.cartData.detailList.length; dNum++) {
+                            var value = that.cartData.detailList[dNum];
+                            if(value.checked){
+                                that.cartData.totalNum = that.cartData.totalNum-value.buyNum;
+                            }else{
+                                notRemoveList.push(value);
+                            }
+                        }
+                        that.cartData.detailList = notRemoveList;
+                        if(that.cartData.detailList.length==0){
+                            that.cartData.detailList = [];
+                            that.cartData.totalPrice = 0;
+                            that.cartData.totalNum = 0;
+                        }
+                        // 将购物车商品信息存储到本地存储中
+                        storage('cartData' + that.vendorUuid, JSON.stringify(that.cartData));
+
+                        flushAllCheck(that);
+                        ObtainTotlePrice(that);
+                        that.cartEdit = false;
+                    }
+                })
+            },
+            //去结算
+            goConfirmOrder:function () {
+                if (sessionObtain('loginCustomerUuid')) {
+                    window.location.href = "confirmOrder.html";
+                } else {
+                    window.location.href = "../login/wechat.html?page=cart";
+                }
+            }
+        }
+    });
+
+    //刷新购物车全选按钮
+    function flushAllCheck(that) {
+        if(!that.cartData){
+            that.allCheck = false;
+            return;
+        }
+        var detailList = that.cartData.detailList;
+        if(!detailList || detailList.length==0){
+            that.allCheck = false;
+            return;
+        }
+        var checkNum = 0;
+        for(var i=0;i<detailList.length;i++){
+            if(!detailList[i].checked){
+                that.allCheck = false;
+                break;
+            }else{
+                checkNum++;
+            }
+        }
+        if(checkNum == detailList.length){
+            that.allCheck = true;
+        }
+    }
+
+    // 获取购物车内商品总价格
+    function ObtainTotlePrice(that) {
+
+        var totalNum = 0;//商品总数量
+        var totalPrice = 0;  // 商品总价格
+        for (var i = 0;i<that.cartData.detailList.length;i++) {
+            var value = that.cartData.detailList[i];
+            if(value.checked){
+                totalPrice = (parseFloat(totalPrice) + parseFloat(value.totalPrice)).toFixed(2);
+                totalNum = parseInt(totalNum) + parseInt(value.buyNum);
+            }
+        }
+        that.cartData.totalNum = parseInt(totalNum);
+        that.cartData.totalPrice = parseFloat(totalPrice).toFixed(2);
+        that.cartData.allPrice = that.cartData.totalPrice;
+    }
+</script>
+</body>
+</html>

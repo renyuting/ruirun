@@ -1,0 +1,104 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="css/global.css" type="text/css" media="screen" />
+
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/init.js"></script>
+</head>
+<body>
+
+<div id="main">
+	<script id="indexTemplate" type="text/html">
+		<header>
+			<div class="head-account">
+				<div class="acconut-rechange clearfix">
+					<span class="fl">￥{{virtualBalance}}</span>
+					<a href="./finance/virtualAccountReceipt.html" class="fr btn btn-custom fz26">充值</a>
+				</div>
+				<p class="fz28">资金账户</p>
+			</div>
+			<div class="account-megs">
+				<ul class="clearfix">
+					<li>
+						<a href='finance/rebateAccount.html'>
+							<span>¥ {{rebateBalance}}</span>
+							<p>返利账户</p>
+						</a>
+					</li>
+					<li>
+						<a href='finance/creditAccount.html'>
+							<span>¥ {{creditBalance}}</span>
+							<p>信用账户</p>
+						</a>
+					</li>
+					<li>
+						<a href='##'>
+							<span>¥ {{availableBalanceTotal}}</span>
+							<p>可用总额</p>
+						</a>
+					</li>
+				</ul>
+			</div>
+		</header>
+		<main class="remmont_products"> <!--推荐商品-->
+			<ul class="clearfix">
+				{{each produceSales as value}}
+				<li>
+					<a href="javascript:;">
+						<div class="m-pic">
+							<img src="{{value.centerImageKey}}" alt="" />
+						</div>
+						<h4>{{value.productName}}</h4>
+						<p><span class="y_price">¥{{value.purchasePrice}} </span></p>
+					</a>
+				</li>
+				{{/each}}
+			</ul>
+		</main>
+		<!--首页底部 end-->
+	</script>
+</div>
+
+<!-- 接口调用公共插件 -->
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+
+<script type="text/javascript">
+	$(function(){
+		// 调用接口
+		getInit();
+	})
+
+	// 接口调用方法
+	function getInit(){
+		var sessionId=obtain("sessionId");
+		var token=obtain("token");
+		var params = {"token":token,"sessionId":sessionId};
+		var methodName = "index";
+		$.ax(
+			methodName,
+			JSON.stringify(params),
+			false,
+			null,
+			null, 
+			function(data){
+				console.log(data);
+				var htmlstr = template('indexTemplate', data.data);
+				$("#main").html(htmlstr);
+		    }
+		);
+	}
+</script>
+</body>
+</html>

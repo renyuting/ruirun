@@ -1,0 +1,309 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="css/member.css" type="text/css" media="screen" />
+
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/init.js"></script>
+</head>
+<body>
+<header class="common-header">
+	<div class="top_fixed">
+		<a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+        <h1 class="top_title">添加新桌台</h1>
+    </div>
+</header>
+
+
+<!-- 信息设置 -->
+<nav class="nav_view m_mt30">
+	<div class="nav_view_item">
+		<span class="item_title">桌台编号</span>
+		<div class="item_content">
+			<input type="text" name="no" id="no" class="form-control" placeholder="请输入桌台编号">
+		</div>
+	</div>
+</nav>
+<nav class="nav_view">
+	<div class="nav_view_item">
+		<span class="item_title">桌台人数</span>
+		<div class="item_content">
+			<input type="text" name="maxPerson" id="maxPerson" class="form-control" placeholder="请输入桌台人数">
+		</div>
+	</div>
+</nav>
+<nav class="nav_view">
+	<div class="nav_view_item navigate_right" data-fullslide='show' data-target="#classfull">
+		<span class="item_title">桌台分类</span>
+		<div class="item_content">
+			<span id="type_text"></span>
+			<p class="tr f_999" id="type_default">未选择</p>
+		</div>
+	</div>
+</nav>
+<!-- 信息设置 end -->
+
+<!-- 保存按钮 -->
+<nav class="edit_btn2 m_mt30">
+	<a href="javascript:saveTable()" class="btn btn-white">添加</a>
+</nav>
+
+<!-- 全屏侧滑 桌台分类 -->
+<section class="full_slide" id="classfull">
+	<header class="common-header">
+		<div class="top_fixed">
+			<span class="top_icon go_back" data-fullslide='miss'></span>
+	        <h1 class="top_title">桌台分类</h1>
+	    </div>
+	</header>
+
+	<nav class="nav_view m_mt30">
+		<div class="nav_view_item">
+			<div class="item_content">
+				<input type="text" name="addCategoryName" id="addCategoryName" class="form-control" placeholder="请输入桌台分类名称">
+				<label onclick="saveTableType();" class="edit_unit f_color1 fz30">新增</label>
+			</div>
+		</div>
+	</nav>
+
+	<section id="category_list">
+    <script id="categoryList" type="text/html">
+		<nav class="nav_view m_mt30 product_class">
+			{{each result as category i}}
+				<div class="nav_view_item raido_block">
+					<span class="item_title">
+						<input type="text" name="" class="form-control" value={{category.name}} readonly="">
+					</span>
+					<div class="item_content tr">
+						<span class="f_ccc m_mr30 edit class_edit" name={{category.name}} index={{i}}>编辑</span>
+						<label class='raido_custom'>
+			   	 			<input type="radio" name="productClass" id={{category.uuid}} value={{category.name}}>
+			   	    		<s class='icon'></s>
+			    		</label>
+					</div>
+				</div>
+			{{/each}}
+		</nav>
+	</script>
+	</section>
+
+	<!-- 保存按钮 -->
+	<nav class="edit_btn2">
+		<a href="#" id="editCategory" class="btn btn-white">保存</a>
+	</nav>
+</section>
+<!-- 全屏侧滑 桌台分类 end -->
+
+<section class="modal" id="classedit">
+	<div class="mask" data-fullslide='miss'></div>
+	<div class="modal-content">
+		<h2 class="modal-title">编辑分类</h2>
+		<nav class="item_padding ">
+			<input type="text" name="editCategoryName" id="editCategoryName" class="form-control" placeholder="请输入桌台分类名称">
+		</nav>
+		<div class="edit_btn2 m_mt20">
+			<a class="btn btn-primary" href="javascript:editTableType();" id="editClassSubmit">保存</a>
+		</div>
+	</div>
+</section>
+
+
+<!-- MUI框架插件 -->
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+
+
+<script type="text/javascript">
+	var categoryUuid = "";
+	var categoryList ;
+	var index = "";
+	$(function(){
+		// 分类编辑
+		$(document).on("click",".class_edit",function(e){
+			e.stopPropagation();
+			fullslide_show("#classedit");
+			index = $(this).attr("index");
+			$("#editCategoryName").val($(this).attr("name"));
+		})
+
+		// 分类编辑的保存操作
+		$(document).on("click","#editClassSubmit",function(e){
+			e.stopPropagation();
+			fullslide_hide("#classedit");
+		})
+		
+		// 保存分类
+		$(document).on("click","#editCategory",function(e){
+			categoryUuid = $('input[name="productClass"]:checked').attr("id");
+			if (categoryUuid === '' || categoryUuid === null || categoryUuid === undefined) {
+	            mui.alert('请选择桌台分类', '提示', '确认');
+	            return;
+	        }else {
+	        	e.stopPropagation();
+				fullslide_hide("#classfull");
+				$("#type_default").html($('input[name="productClass"]:checked').val());
+	        }
+		})
+		
+		getCategoryList();
+	})
+	
+	function saveTable(){
+		var vendorUuid = sessionObtain('vendorId');
+		var vendorName = sessionObtain('vendorName');
+		var no = $("#no").val();
+		if (no === '' || no === null || no === undefined) {
+            mui.alert('请填写桌台编号', '提示', '确认');
+            return;
+        }
+		var maxPerson = $("#maxPerson").val();
+		if (maxPerson === '' || maxPerson === null || maxPerson === undefined) {
+            mui.alert('请填写桌台人数', '提示', '确认');
+            return;
+        }
+		if(!parseInt(maxPerson)){
+			mui.alert('桌台人数请填写整数', '提示', '确认');
+            return;
+		}
+		maxPerson = parseInt(maxPerson);
+		if (categoryUuid === '' || categoryUuid === null || categoryUuid === undefined) {
+            mui.alert('请选择桌台分类', '提示', '确认');
+            return;
+        }
+		var dto = {
+			no: no,
+			maxPerson: maxPerson,
+			typeUuid: categoryUuid,
+            vendorUuid: vendorUuid,
+            vendorName: vendorName
+        };
+		var methodName = "userfront/dinnertable/add";
+		var params = {"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        params["dto"] = JSON.stringify(dto);
+        $.ax(
+             methodName,
+             params,
+             false,
+             null,
+             null,
+             function(data){
+            	 if (data.returnCode === 1) {
+                     mui.toast('新增桌台成功');
+                     setTimeout(function () {
+                    	 window.location.href='tableManage.html';
+                     }, 1000)
+                 } else {
+                     mui.toast(result.message);
+                 }
+            	 getCategoryList();
+             }
+         );
+	}
+	
+	
+	function saveTableType(){
+		var vendorUuid = sessionObtain('vendorId');
+		var vendorName = sessionObtain('vendorName');
+		var name = $("#addCategoryName").val();
+		if (name === '' || name === null || name === undefined) {
+            mui.alert('请填写桌台分类名称', '提示', '确认');
+            return;
+        }
+		var dto = {
+			name: name,
+            vendorUuid: vendorUuid,
+            vendorName: vendorName
+        };
+		var methodName = "userfront/dinnertabletype/add";
+		var params = {"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        params["dto"] = JSON.stringify(dto);
+        $.ax(
+             methodName,
+             params,
+             false,
+             null,
+             null,
+             function(data){
+            	 if (data.returnCode === 1) {
+                     mui.toast('新增分类成功');
+                     $("#addCategoryName").val("");
+                     getCategoryList();
+                 } else {
+                     mui.toast(result.message);
+                 }
+             }
+         );
+	}
+	
+	
+	function editTableType(){
+		var name = $("#editCategoryName").val();
+		if (name === '' || name === null || name === undefined) {
+            mui.alert('请填写桌台分类名称', '提示', '确认');
+            return;
+        }
+		var dto = categoryList[index];
+		dto["name"] = name;
+		var methodName = "userfront/dinnertabletype/edit";
+		var params = {"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        params["dto"] = JSON.stringify(dto);
+        $.ax(
+             methodName,
+             params,
+             false,
+             null,
+             null,
+             function(data){
+            	 if (data.returnCode === 1) {
+                     mui.toast('编辑分类成功');
+                     getCategoryList();
+                 } else {
+                     mui.toast(data.message);
+                 }
+             }
+         );
+	}
+	
+	function getCategoryList(){
+		var vendorId = sessionObtain("vendorId");
+        var methodName = "userfront/dinnertabletype/list";
+        var qm = {
+            "queryParams": {
+                "vendorUuid": {
+                    "operation": "EQ",
+                    "value": vendorId
+                }
+            },
+            "sortMap": {}
+        }
+        var methodName = "userfront/dinnertabletype/listAll";
+        var params = {"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        params["qm"] = JSON.stringify(qm);
+        $.ax(
+            methodName,
+            params,
+            false,
+            null,
+            null,
+            function(data){
+                var htmlstr = template('categoryList', data.data);
+                $("#category_list").html(htmlstr);
+                categoryList = data.data.result;
+            }
+        );
+	}
+</script>
+</body>
+</html>

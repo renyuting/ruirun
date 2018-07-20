@@ -1,0 +1,136 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="css/member.css" type="text/css" media="screen"/>
+
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/init.js"></script>
+</head>
+<body>
+<header class="common-header">
+    <div class="top_fixed">
+        <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+        <h1 class="top_title">登录</h1>
+    </div>
+</header>
+
+<section class="login_logo"><img src="img/logo.png"></section>
+
+<section class="login_form">
+    <div class="form_group">
+        <label class="control_label">商家名称：</label>
+        <input type="text" id="vendorName" class="form-control" placeholder="请输入商家名称">
+    </div>
+    <div class="form_group">
+        <label class="control_label">用&nbsp;&nbsp;户&nbsp;名：</label>
+        <input type="text" id="loginName" class="form-control" placeholder="请输入用户名">
+    </div>
+    <div class="form_group">
+        <label class="control_label">密&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;码：</label>
+        <input type="password" id="password" class="form-control" placeholder="请输入密码">
+    </div>
+    <a href="javascript: login()" class="btn btn-primary">登录</a>
+</section>
+
+<!-- 图片上传 -->
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+<script>
+    $(function () {	
+        $('#vendorName').val(obtain('vendorName'));
+    });
+    function login() {
+        var vendorName = $.trim($('#vendorName').val());
+        if (vendorName === '' || vendorName === null || vendorName === undefined) {
+            mui.alert('请输入商家名称', '提示', '确认');
+            $('#vendorName').focus();
+            return;
+        }
+        var loginName = $.trim($('#loginName').val());
+        if (loginName === '' || loginName === null || loginName === undefined) {
+            mui.alert('请输入用户名', '提示', '确认');
+            $('#loginName').focus();
+            return;
+        }
+        var password = $.trim($('#password').val());
+        if (password === '' || password === null || password === undefined) {
+            mui.alert('请输入密码', '提示', '确认');
+            $('#password').focus();
+            return;
+        }
+		$.axs(
+		    'userfront/login',
+            {
+                vendorName: vendorName,
+                loginName: loginName,
+                password: password,
+				deviceId: obtain("deviceId")||"12121"
+            },
+            function (result) {
+                if (result.returnCode === 1) {
+                    var data = result.data.result;
+                    session('loginName', loginName);
+					// 会话存储
+                    session('accessToken', data.accessToken);
+                    session('deviceId', data.deviceId);
+                    session('userId', data.managerUuid);
+                    session('vendorId', data.vendorUuid);
+					// 本地存储登录信息，第二次进入app时，则不需要登录
+					storage('accessToken', data.accessToken);
+                    storage('deviceId', data.deviceId);
+                    storage('userId', data.managerUuid);
+                    storage('vendorId', data.vendorUuid);
+					storage('loginName', loginName);
+					storage('password', password);
+                    // 本地存储，登录页用
+                    storage('vendorName', data.vendorName);
+					storage('vendorLogo', data.vendorLogo);
+					storage('vendorAddress', data.vendorAddress);
+                    session('vendorName', data.vendorName);
+                    session('vendorLogo', data.vendorLogo);
+                    session('vendorAddress', data.vendorAddress);
+					session('industryCate', data.industryCate);
+					transferToApp(data);
+                    window.location.href = 'index.html';
+                } else {
+                    mui.toast(result.message);
+                }
+            }
+        );
+    }
+	// 将登录后返回的信息传给app
+	function transferToApp(data){
+		var datastr = JSON.stringify(data); 
+		console.info(datastr);
+		// 判断是否是安卓端还是ios还是其他
+		var u = navigator.userAgent;
+		// ios
+		if(u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/)){
+			try{
+				jsobj.toLogin(datastr);
+			}catch(e){
+				console.info(e);
+			}
+		}else if(u.indexOf('Android') > -1 || u.indexOf('Linux') > -1){	// android
+			try{
+				window.jsobj.toLogin(datastr);
+			}catch(e){
+				console.info(e);
+			}
+		}
+	}
+</script>
+</body>
+</html>

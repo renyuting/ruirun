@@ -1,0 +1,211 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="css/global.css" type="text/css" media="screen" />
+
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/init.js"></script>
+</head>
+<body>
+<header class="common-header">
+	<div class="top_fixed">
+		<a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+        <h1 class="top_title">店铺优惠设置</h1>
+    </div>
+</header>
+
+<div id="main">
+<script id="discounts" type="text/html">
+<!-- 优惠设置 -->
+<nav class="nav_view m_mt30">
+	<div class="sale_info">
+		所有活动不能共享，单次仅参加一次活动，
+      	酒水、餐具等不参与优惠
+	</div>
+	<div class="nav_view_item mb_bor">
+		<strong class="item_title">阶梯满减</strong>
+		<div class="item_content">
+			<div class="mui-switch {{if mjOpen == null || mjOpen}}mui-active{{/if}} " id="sale_switch">
+                <div class="mui-switch-handle"></div>
+            </div>
+			<input type="hidden" id="mjOpen" value="1">
+		</div>
+	</div>
+	<div id="sale_box">
+		<div class="sale_items">
+			<span>订单满</span>
+			<input type="number" id="money1" value="{{money1}}" class="form-control">
+			<span>元，减</span>
+			<input type="number" id="free1" value="{{free1}}" class="form-control">
+			<span>元</span>
+			<!-- <nav class="sale_delect"></nav> -->
+		</div>
+		<div class="sale_items">
+			<span>订单满</span>
+			<input type="number" id="money2" value="{{money2}}" class="form-control">
+			<span>元，减</span>
+			<input type="number" id="free2" value="{{free2}}" class="form-control">
+			<span>元</span>
+			<!-- <nav class="sale_delect"></nav> -->
+		</div>
+		<div class="sale_items">
+			<span>订单满</span>
+			<input type="number" id="money3" value="{{money3}}" class="form-control">
+			<span>元，减</span>
+			<input type="number" id="free3" value="{{free3}}" class="form-control">
+			<span>元</span>
+			<!-- <nav class="sale_delect"></nav> -->
+		</div>
+		<!-- <nav class="sale_add"><span>+</span> 添加</nav> -->
+	</div>
+</nav><!-- 优惠设置 end -->
+
+<!-- 优惠设置 -->
+<nav class="nav_view m_mt30">
+	<div class="nav_view_item mb_bor">
+		<strong class="item_title">首单优惠</strong>
+		<div class="item_content">
+			<div class="mui-switch {{if ljOpen == null || ljOpen}}mui-active{{/if}}" id="sale_switch2">
+                <div class="mui-switch-handle"></div>
+            </div>
+		</div>
+		<input type="hidden" id="ljOpen" value="1">
+	</div>
+	<div id="sale_box2">
+		<div class="sale_items">
+			<span>新用户首次下单立减</span>
+			<input type="number" id="ljFree" value="{{ljFree}}" class="form-control">
+			<span>元</span>
+		</div>
+	</div>
+</nav><!-- 优惠设置 end -->
+</script>
+</div>
+<!-- 保存按钮 -->
+<nav class="edit_btn2">
+	<a href="javascript:save()" class="btn btn-white">保存</a>
+</nav>
+
+<!-- 时间选择插件 -->
+<script src="js/mui.min.js"></script>
+<!-- 接口调用公共插件 -->
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+
+
+<script type="text/javascript">
+	$(function(){
+        // 获取优惠设置接口
+        getInit();
+
+		// 优惠1
+		$('#sale_switch')[0].addEventListener('toggle', function(event) {
+			if (event.detail.isActive) {
+				$("#sale_box").slideDown(300);
+                $("#mjOpen").val(1);
+			} else {
+				$("#sale_box").slideUp(300);
+                $("#mjOpen").val(0);
+			}
+		});
+
+		// 优惠2
+		$('#sale_switch2')[0].addEventListener('toggle', function(event) {
+			if (event.detail.isActive) {
+				$("#sale_box2").slideDown(300);
+                $("#ljOpen").val(1);
+			} else {
+				$("#sale_box2").slideUp(300);
+                $("#ljOpen").val(0);
+			}
+		});
+	})
+
+    // 获取优惠设置接口
+    function getInit(){
+        var vendorId = sessionObtain("vendorId");
+        var methodName = "userfront/discounts/getByVendor/" + vendorId;
+        var params = {"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        $.ax(
+            methodName,
+            params,
+            false,
+            null,
+            null,
+            function(data){
+                console.log(data);
+                var htmlstr = template('discounts', data.data.result);
+                $("#main").html(htmlstr);
+                if(data.data.result!=null){
+					if(data.data.result.mjOpen){
+                        $("#sale_box").slideDown(300);
+                        $("#mjOpen").val(1);
+					}else{
+                        $("#sale_box").slideUp(300);
+                        $("#mjOpen").val(0);
+					}
+                    if(data.data.result.ljOpen){
+                        $("#sale_box2").slideDown(300);
+                        $("#ljOpen").val(1);
+                    }else{
+                        $("#sale_box2").slideUp(300);
+                        $("#ljOpen").val(0);
+                    }
+				}
+            }
+        );
+    }
+
+    // 保存
+    function save(){
+        var vendorId = sessionObtain("vendorId");
+        var methodName = "userfront/discounts/save";
+
+        var mjOpen = $("#mjOpen").val()=="1"?true:false;
+        var ljOpen = $("#ljOpen").val()=="1"?true:false;
+        var money1 = ($("#money1").val() == null || $("#money1").val() == "" || $("#money1").val() == "undefined") ? 0 : $("#money1").val();
+        var free1 = ($("#free1").val() == null || $("#free1").val() == "" || $("#free1").val() == "undefined") ? 0 : $("#free1").val();
+        var money2 = ($("#money2").val() == null || $("#money2").val() == "" || $("#money2").val() == "undefined") ? 0 : $("#money2").val();
+        var free2 = ($("#free2").val() == null || $("#free2").val() == "" || $("#free2").val() == "undefined") ? 0 : $("#free2").val();
+        var money3 = ($("#money3").val() == null || $("#money3").val() == "" || $("#money3").val() == "undefined") ? 0 : $("#money3").val();
+        var free3 = ($("#free3").val() == null || $("#free3").val() == "" || $("#free3").val() == "undefined") ? 0 : $("#free3").val();
+        var ljFree = ($("#ljFree").val() == null || $("#ljFree").val() == "" || $("#ljFree").val() == "undefined") ? 0 : $("#ljFree").val();
+        var dto = {
+            "vendorUuid":vendorId,
+            "mjOpen":mjOpen,
+            "ljOpen":ljOpen,
+            "money1":money1,
+            "free1":free1,
+            "money2":money2,
+            "free2":free2,
+            "money3":money3,
+            "free3":free3,
+            "ljFree":ljFree
+        };
+        var params = {"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        params["body"]=JSON.stringify(dto);
+        $.ax(
+            methodName,
+            params,
+            false,
+            null,
+            null,
+            function(data){
+                console.log(data);
+                mui.alert(data.message, '提示');
+            }
+        );
+    }
+</script>
+</body>
+</html>

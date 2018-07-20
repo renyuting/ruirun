@@ -1,0 +1,307 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>我的订单</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="../../css/member.css" type="text/css" media="screen"/>
+
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/init.js"></script>
+</head>
+<body>
+
+<div class='page' :id="'skin_'+styleClass" v-cloak>
+    <header class="common-header blue-style">
+        <div class="top_fixed">
+            <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+            <h1 class="top_title">我的订单</h1>
+        </div>
+    </header>
+
+    <!-- 订单列表  -->
+    <section class='order_list'>
+        <!-- 列表展示  -->
+        <template v-if="!!orderList[0]">
+            <a :href="'orderDetail.html?uuid='+order.uuid" class='items' v-for="(order,idx) in orderList">
+                <div class='y_title'>
+                    <span class="fl">
+                        <label class='label' :class="order.eatType==2?'yellow':'green'">{{order.eatTypeName}}</label>
+                        <span class='store_name'>{{order.vendorName}}</span>
+                    </span>
+                    <span class='color_999 fr' v-if="order.state==4||order.state==5||order.state==-1">{{order.stateName}}</span>
+                    <span class='color_red fr' v-else>{{order.stateName}}</span>
+                </div>
+                <div class='cells nomargin'>
+                    <div class='cell' :class="{'cell-access':order.detailList.length>1}">
+                        <template v-if="order.detailList.length==1">
+                            <template v-for="detail in order.detailList">
+                                <div class="cell-hd">
+                                    <img :src='detail.productImg'>
+                                </div>
+                                <div class="cell-bd">
+                                    <div class='name'>{{detail.productName}}</div>
+                                    <span class='price fz22'>￥
+                                        <span class='fz28'>{{detail.productPrice|NumberFmt}}</span>
+                                    </span>
+                                </div>
+                            </template>
+                        </template>
+                        <template v-else>
+                            <div class="cell-hd" v-if="idx<3" v-for="(detail,idx) in order.detailList">
+                                <img v-if="idx<3" :src='detail.productImg'>
+                            </div>
+                            <div class="cell-bd">
+                            </div>
+                            <div class="cell-ft color_999">
+                                {{order.detailList.length}}件商品
+                            </div>
+                        </template>
+                    </div>
+                    <div class='cell'>
+                        <div class="cell-bd color_999">
+                            {{order.createTime}}
+                        </div>
+                        <div class="cell-ft">
+                            {{order.payState==2?'实付款':'需付款'}}：<span class='price'>￥<span class='fz30'>{{order.payPrice|NumberFmt}}</span></span>
+                        </div>
+                    </div>
+                    <div class='cell order_btn'>
+                        <div class="cell-bd">
+                        </div>
+                        <div class="cell-ft">
+                            <span class='btn btn-yellow' v-if="order.state!=-1 && order.payState!=2 && order.payType!=1"
+                                  @click.prevent="pay(order.uuid, order.payType)">支付</span>
+                            <span class='btn btn-yellow' v-if="(order.state === 4 || order.state === 5) && !order.appraiseState"
+                                  @click.prevent="appraise(order.uuid)">评价</span>
+                            <span class='btn' v-if="order.state==1 && order.payState!=2"
+                                  @click.prevent="cancel(idx,order.uuid)">取消</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            <div class="has-more" v-show="hasMore"></div>
+        </template>
+        <div class="norecord" v-else>
+            <img src='../../images/nodata.png'>
+            您还没有订单哦
+        </div>
+        <!-- 列表展示 end -->
+    </section>
+    <!-- 订单列表 end  -->
+
+    <!-- 底部导航 -->
+    <footer class="foot_nav_fixed">
+        <nav class="foot_nav">
+            <a class="items" href="../shop/welcome.html"><s class="ico1"></s>首页</a>
+            <a class="items" href="../shop/index.html"><s class="ico2"></s>点餐</a>
+            <a class="items cur" href="../usercenter/orderList.html"><s class="ico3"></s>订单</a>
+            <a class="items" href="../usercenter/index.html"><s class="ico4"></s>我的</a>
+        </nav>
+    </footer>
+    <!-- 底部导航 end -->
+</div>
+
+
+<!-- 页面调用公共插件 -->
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/vue.js"></script>
+<script src="../../js/filter.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el: ".page",
+        data: {
+            styleClass: '',  // 换肤颜色
+            orderList: [],  // 订单列表数据
+            nowPage: 1,  // 列表默认从第一页开始展示
+            pageShow: 10,  // 列表每页展示多少条数据
+            hasMore: true,   // 列表上拉是否可以加载更多
+        },
+        mounted: function () {
+            // 获取商户皮肤值
+            var styleClass = obtain("styleClass");
+            // 设置页面皮肤值
+            this.styleClass = styleClass;
+
+            // 获取订单数据
+            this.getOrderList();
+        },
+        methods: {
+            // 获取订单数据
+            getOrderList: function (scroll) {
+                var customerUuid = obtain("customerUuid");
+                var vendorUuid = obtain('vendorUuid');
+                if(!customerUuid){
+                    mui.toast('会员ID为空');
+                    return;
+                }
+                if(!vendorUuid){
+                    mui.toast('商户ID为空');
+                    return;
+                }
+
+                var that = this;
+                if (scroll != "scroll") {
+                    that.nowPage = 1
+                } else {
+                    that.nowPage += 1
+                }
+
+                var qm = {
+                    "pageShow": that.pageShow,
+                    "queryPage": that.nowPage,
+                    "queryParams": {
+                        "customerUuid": {
+                            "operation": "EQ",
+                            "value": customerUuid
+                        },
+                        "vendorUuid": {
+                            "operation": "EQ",
+                            "value": vendorUuid
+                        }
+                    },
+                    "sortMap": {}
+                }
+                // 获取订单列表信息
+                PostData("/ordermain/list", JSON.stringify(qm), function (res) {
+                    var list = res.returnMessage;
+                    if (!list) {
+                        that.hasMore = false;
+                        return;
+                    }
+                    //如果滚动，将新数据往orderList添加
+                    var orderList = scroll == "scroll" ? that.orderList.concat(list) : list;
+                    that.orderList = orderList
+
+                    if (list.length < that.pageShow) {
+                        that.hasMore = false
+                    } else {
+                        that.hasMore = true
+                    }
+                })
+            },
+
+            /**
+             * 取消订单
+             */
+            cancel: function (index, orderUuid) {
+                var that = this;
+                mui.confirm('确定取消订单？', '提示', ['确认', '取消'], function (e) {
+                    if (e.index == 0) {
+                        var qm = {
+                            "id": orderUuid,
+                            "operatorUuid": "",
+                            "operatorName": "",
+                        };
+
+                        // 取消订单
+                        PostData("/ordermain/cancel", qm, function (res) {
+                            if (res && res.returnCode === 1) {
+                                mui.toast('取消成功');
+                                var msg = res.returnMessage;
+                                //对订单状态字段重新赋值，页面实现数据双向绑定
+                                var orderList = that.orderList;
+                                var order = orderList[index];
+                                order.state = msg.state;
+                                order.payState = msg.payState;
+                                order.stateName = msg.stateName;
+                                order.payStateName = msg.payStateName;
+
+                                that.orderList = orderList
+                            } else {
+                                mui.toast('取消失败');
+                            }
+
+                        }, "", "", "application/x-www-form-urlencoded");
+                    }
+                })
+            },
+            appraise(uuid) {
+            	window.location.href = "orderAppraise.html?uuid="+uuid;
+            },
+            pay: function (orderUuid, payType) {
+                if (3 == payType) {
+                    // 微信支付，先调微信预下单接口下单
+                    var data = {
+                        "orderUuid": orderUuid,
+                        "wxplat": obtain("wxplat")
+                    };
+                    PostData("/wxpay/order", JSON.stringify(data), function (res) {
+                        if (1 === res.returnCode) {
+                            // 预下单成功，根据返回参数唤起微信支付
+                            if (typeof WeixinJSBridge == "undefined") {
+                                if (document.addEventListener) {
+                                    document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+                                } else if (document.attachEvent) {
+                                    document.attachEvent('WeixinJSBridgeReady', onBridgeReady);
+                                    document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+                                }
+                            } else {
+                                onBridgeReady(res, orderUuid);
+                            }
+                        } else {
+                            mui.alert('微信支付失败，请稍后再试');
+                            location.href = 'orderDetail.html?uuid=' + orderUuid + '&from=saveOrder';
+                        }
+                    });
+                } else {
+                    mui.alert('不支持的支付方式');
+                }
+            }
+        }
+    });
+
+    function onBridgeReady(result, orderUuid) {
+        var data = result.returnMessage.data;
+        WeixinJSBridge.invoke(
+            'getBrandWCPayRequest', {
+                "appId": data.appId,     //公众号名称，由商户传入
+                "timeStamp": data.timeStamp,         //时间戳，自1970年以来的秒数
+                "nonceStr": data.nonceStr, //随机串
+                "package": data.package,
+                "signType": data.signType,         //微信签名方式：
+                "paySign": data.paySign //微信签名
+            },
+            function (res) {
+                console.log(res);
+                if (res.err_msg == "get_brand_wcpay_request:ok") {
+                    // 支付成功，直接进入订单详情页
+                    location.href = 'orderDetail.html?uuid=' + orderUuid + '&from=saveOrder';
+                } else if (res.err_msg == "get_brand_wcpay_request:cancel") {
+                    mui.alert('您取消了支付', function () {
+                        location.href = 'orderDetail.html?uuid=' + orderUuid + '&from=saveOrder';
+                    });
+                } else {
+                    mui.alert('微信支付失败，请稍后再试', function () {
+                        location.href = 'orderDetail.html?uuid=' + orderUuid + '&from=saveOrder';
+                    });
+                }
+            }
+        );
+    }
+
+    $(function () {
+        // 上拉加载更多
+        $(window).scroll(function () {
+            var scrollTop = $(this).scrollTop();
+            var scrollHeight = $(document).height();
+            var windowHeight = $(this).height();
+            if (scrollTop + windowHeight >= scrollHeight) {
+                if (vm.hasMore == true) {
+                    vm.getOrderList("scroll")
+                }
+            }
+        });
+    })
+</script>
+</body>
+</html>

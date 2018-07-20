@@ -1,0 +1,84 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="css/member.css" type="text/css" media="screen"/>
+
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/init.js"></script>
+</head>
+<body>
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+<script>
+    $(function () {
+		// 判断是否是移动终端
+		var u = navigator.userAgent;
+		//if(u.match(/AppleWebKit.*Mobile.*/)){
+		//	try{
+		//		console.info("deviceId:"+window.jsobj.queryDeviceUuid());
+		//		storage('deviceId', window.jsobj.queryDeviceUuid());
+		//	}catch(e){
+		//		storage('deviceId', "12121");
+		//	}
+			// 校验是否有登录令牌，如果有则说明之前登录过，直接跳转到首页，如果没有则执行静默登录
+		//	verifyToken();
+		//}else{
+			//alert("非移动终端");
+		//	storage('deviceId', "12121");
+		//}
+		// ios
+		if(u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/)){
+			try{
+				storage('deviceId', jsobj.queryDeviceUuid());
+			}catch(e){
+				storage('deviceId', "12121");
+			}
+
+		}else if(u.indexOf('Android') > -1 || u.indexOf('Linux') > -1){	// android
+			try{
+				storage('deviceId', window.jsobj.queryDeviceUuid());
+			}catch(e){
+				storage('deviceId', "12121");
+			}
+		}
+	    // 校验是否有登录令牌，如果有则说明之前登录过，直接跳转到首页，如果没有则执行静默登录
+	    verifyToken();
+    });
+	// 校验本地存储是否有登录信息
+	function verifyToken(){
+		var accessToken = obtain('accessToken');
+		var userId = obtain('userId');
+		var deviceId = obtain('deviceId');
+		var vendorId = obtain('vendorId');
+		if(accessToken == ''||accessToken == null ||accessToken == undefined 
+			||userId == ''||userId == null ||userId == undefined 
+			||vendorId == ''||vendorId == null ||vendorId == undefined ){
+			console.info("本地无用户登录信息，则就在本登录页执行登陆");
+			window.location.href = 'Login.html';
+		}else{
+			session('accessToken', accessToken);
+			session('deviceId', deviceId);
+			session('userId', userId);
+			session('vendorId', vendorId);
+			session('vendorName', obtain('vendorName'));
+			session('vendorLogo', obtain('vendorLogo'));
+			session('vendorAddress', obtain('vendorAddress'));
+			session('industryCate', obtain('industryCate'));
+			window.location.href = 'index.html';
+		}
+	}
+</script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="css/member.css" type="text/css" media="screen" />
+
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/init.js"></script>
+</head>
+<body>
+<header class="common-header">
+	<div class="top_fixed">
+		<a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+        <h1 class="top_title">编辑商品分类</h1>
+    </div>
+</header>
+<div id="main">
+<script id="productDetail" type="text/html">
+<!-- 商品图片、名称 -->
+<section class="product_info">
+	<div class="m_plr4">
+		<input type="hidden" name="uuid" id="uuid" value="{{uuid}}">
+		<input type="hidden" name="vendorUuid" id="vendorUuid" value="{{vendorUuid}}">
+		<input type="hidden" id="image" name="image">
+	</div>
+	<div class="picture_list">
+		<div class="pho_boxs">
+			<div id="photoup">
+			</div>
+		</div>
+		<label for='upImgs' class="imageHide"></label>
+	</div>
+	<p class="f_ccc fz20 m_mb10 m_plr4">只能上传1张图片</p>
+</section>
+<!-- 商品图片、名称 end -->
+
+<!--WAP浏览器使用-->
+<form id="formUpImgs" action="" method="post" enctype="multipart/form-data" onsubmit="uploadFile(this); return false;" onchange="uploadFile(this); return false;">
+	<input id="upImgs" type="file" multiple name="imgFile" style="display:none;">
+</form>
+
+<!-- 商品详细信息设置 -->
+<section class="product_detial">
+	<nav class="nav_view">
+		<div class="nav_view_item">
+			<span class="item_title">商品分类名称</span>
+			<div class="item_content">
+				<input type="text" name="name" id="name" class="form-control" value="{{name}}" placeholder="请输入商品分类名称">
+			</div>
+		</div>
+		<div class="nav_view_item">
+			<span class="item_title">商品分类类型</span>
+			<div class="item_content">
+				<div class='raido_box'>
+				    <label class='raido_custom'>
+				    	<input type="radio" name="type" {{if type=='2'}}checked{{/if}} value="2">
+				        <s class='icon'></s>
+				        <span class='name'>推荐分类</span>
+				    </label>
+				    <label class='raido_custom'>
+				    	<input type="radio" name="type" {{if type=='1'}}checked{{/if}} value="1">
+				        <s class='icon'></s>
+				        <span class='name'>普通分类</span>
+				    </label>
+				</div>
+			</div>
+		</div>
+		<!--<div class="nav_view_item">
+			<span class="item_title">排序</span>
+			<div class="item_content">
+				<input type="text" name="position" id="position" class="form-control" value="{{position}}" placeholder="请输入序号">
+			</div>
+		</div>-->
+	</nav>
+</section>
+<!-- 商品详细信息设置 end -->
+</script>
+</div>
+<!-- 保存按钮 -->
+<nav class="fixed_btn">
+	<a href="##" class="btn btn-white" onclick="editCategory();">保存</a>
+</nav>
+
+
+<!-- 图片上传 -->
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+<script src="js/wapImageUploadForOrderEvaluation.js"></script>
+<script src="js/jquery.cookie.js"></script>
+
+<script type="text/javascript">
+	var dto = null;
+	var vendorUuid = sessionObtain('vendorId');
+	var accessToken = sessionObtain('accessToken');
+	var userId = sessionObtain('userId');
+	var deviceId = sessionObtain('deviceId');
+	$(function(){
+		
+		// 上传图片url
+		$("#formUpImgs").attr("action", window.upLoadPath);
+
+		// 获取当前图片数量
+		var currentImageNum = $("#photoup").children().find("img").length;
+		
+		// 加载商品详情数据
+		loadProductCateInfo();
+	});
+	// 加载商品详情数据
+	function loadProductCateInfo(){
+		var productCategoryUuid = sessionObtain('productCategoryUuid');
+		var methodName = "userfront/productcate/get/"+productCategoryUuid;
+		var params = {"accessToken":accessToken,"userId":userId,"deviceId":deviceId};
+		$.ax(
+			methodName,
+			params,
+			false,
+			"post",
+			"json", 
+			function(data){
+			  if (1 == data.returnCode) {
+				console.info(data.data.result);
+				dto = data.data.result;
+				var productCate = data.data.result;
+				var htmlstr = template('productDetail', productCate);
+				$("#main").html(htmlstr);
+				// 加载商品分类图片
+				var pic = productCate.image;
+				$("#image").val(pic);
+				$("#photoup").append("<div class='changan'><img src='"+pic+"' width='81.69' height='81.69'><div class='delete'></div></div>");
+				$(".imageHide").hide();
+				// 绑定删除图片的事件
+				bindDeleteEvent();
+			  }
+			}
+		 );
+	}
+	
+	// 编辑分类
+	function editCategory(){
+		var name = $("#name").val();
+		if (name === '' || name === null || name === undefined) {
+            mui.alert('请填写分类名称', '提示', '确认');
+            return;
+        }
+		var image = $("#image").val();
+		if (image === '' || image === null || image === undefined) {
+            mui.alert('请上传分类图标', '提示', '确认');
+            return;
+        }
+		var type = $("[name='type']:checked").val();
+		var position = $("#position").val();
+		dto["name"] = name;
+		dto["image"] = image;
+		dto["type"] = type;
+		var methodName = "userfront/productcate/edit";
+		var params = {"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        params["dto"] = JSON.stringify(dto);
+        $.ax(
+             methodName,
+             params,
+             false,
+             null,
+             null,
+             function(data){
+            	 if (data.returnCode === 1) {
+                     mui.toast('编辑分类成功');
+                     window.location.href = 'productCategoryManage.html';
+                 } else {
+                     mui.toast(data.message);
+                 }
+             }
+         );
+	}
+	/**商品图片处理相关函数 start **/
+	// 上传图片
+	function uploadFile(oFormElement) {
+		var oReq = new XMLHttpRequest();
+		oReq.onload = doSuccess;
+		var action = window.upLoadPath;
+		oReq.open("post", action,true);
+		oReq.send(new FormData(oFormElement));
+	}
+	// 上传图片回调函数
+	function doSuccess () {
+		console.log(this.responseText);
+		var data = JSON.parse(this.responseText);
+		if (1 == data.returnCode) {
+		   var url = data.data.url;
+		   console.info(url);
+		   var picHtml = "<div class='changan'><img src='"+url+"' width='81.69' height='81.69'></img><div class='delete'></div></div>";
+		   $("#photoup").append(picHtml);
+		   buildImageData();
+		   bindDeleteEvent();
+		}	
+	}
+	function buildImageData(){
+		var image = $("#photoup").children(".changan").children("img");
+		var url = $(image).attr("src");
+		$("#image").val(url);
+		console.info($("#image").val());
+		// 如果图片已经有1张，则隐藏上传按钮
+		$(".imageHide").hide();
+	}
+	
+	function bindDeleteEvent(){
+		// 删除图片
+		$(".delete").click(function(){
+			var currentImageCount = $(this).parents(".changan").length;
+			$(this).parents(".changan").remove();
+			//if (currentImageCount == 1) {
+			$(".imageHide").show();
+			//}
+			// 重新组装图片数据
+			//buildImageData();
+		})
+	}
+	/**商品图片处理相关函数 end **/
+</script>
+</body>
+</html>

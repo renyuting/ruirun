@@ -1,0 +1,213 @@
+<!doctype html>
+<html>
+<head>
+<title>鲜花蛋糕-极速配送</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<!-- 日期时间选择器css -->
+<link rel="stylesheet" href="../../css/mui.picker.min.css" type="text/css" media="screen" />
+<!-- 页面样式 -->
+<link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="../../css/shop.css" type="text/css" media="screen" />
+
+<script src="../../js/jquery-1.11.1.min.js"></script>
+<script src="../../js/init.js"></script>
+</head>
+<body>
+<div class="page" v-cloak>
+    <!-- 公共头部 -->
+    <header class="common-header">
+        <div class="top_fixed">
+            <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+            <h1 class="top_title">选择送达时间</h1>
+            <top-nav></top-nav>
+        </div>
+    </header>
+    <!-- 公共头部 end -->
+
+    <!-- 配送时间  -->
+    <div class='pane_box no_padding senttimebox'>
+        <nav class='type_item sendtype_title navigateTo' id="sentData" @click="selectData">
+            <div class='type_title'>配送日期</div>
+            <div class='type_content'>
+                <div class="t-r color_999" v-if="!sentData">请选择</div>
+                <div class='t-r' v-else>
+                    {{sentData}}
+                </div>
+            </div>
+        </nav>
+        <nav class='type_item clearfix'>
+            <div class='type_title'>配送时段</div>
+            <!-- <div class='type_content'>
+                <div class='t-r color_999' v-if="!sentData">请选择配送日期</div>
+            </div> -->
+        </nav>
+        <!-- <template v-if="sentData"> -->
+            <div class='z-cell pay_type' :class="{'active':sentTimeType=='1'}" @click="chooseType('1',$event)">
+                <div class="cell-hd">
+                    <label class='raido_custom'>
+                        <span class='icon'></span>
+                    </label>
+                    <span class="fz26"><span class="time">不限</span></span>
+                </div>
+            </div>
+            <div class='z-cell pay_type' :class="{'active':sentTimeType=='2'}" @click="chooseType('2',$event)">
+                <div class="cell-hd">
+                    <label class='raido_custom'>
+                        <span class='icon'></span>
+                    </label>
+                    <span class="fz26">上午（<span class="time">8:30-12:00</span>）</span>
+                </div>
+            </div>
+            <div class='z-cell pay_type' :class="{'active':sentTimeType=='3'}" @click="chooseType('3',$event)">
+                <div class="cell-hd">
+                    <label class='raido_custom'>
+                        <span class='icon'></span>
+                    </label>
+                    <span class="fz26">下午（<span class="time">12:00-18:00</span>）</span>
+                </div>
+            </div>
+            <div class='z-cell pay_type' :class="{'active':sentTimeType=='4'}" @click="chooseType('4',$event)">
+                <div class="cell-hd">
+                    <label class='raido_custom'>
+                        <span class='icon'></span>
+                    </label>
+                    <span class="fz26">晚上（<span class="time">16:00-21:00</span>）</span>
+                </div>
+            </div>
+            <div class='z-cell pay_type cell-access' :class="{'active':sentTimeType=='5'}" @click="chooseType('5')">
+                <div class="cell-hd">
+                    <label class='raido_custom'>
+                        <span class='icon'></span>
+                    </label>
+                    <span class="fz26">定时</span>
+                </div>
+                <div class="cell-ft" @click="stCustomeTime" v-show="sentTimeType=='5'">
+                    <div class="t-r color_999" v-if="!customeTime">请选择</div>
+                    <div class='t-r' v-else>
+                        {{customeTime}}
+                    </div>
+                </div>
+            </div>
+        <!-- </template> -->
+    </div>
+    <!-- 配送时间 end  -->
+
+
+    <div class="pull-p-l-20 pull-p-r-20 pull-m-t-40">
+        <div class='btn btn-block btn-yellow-bg' @click="save()">确认</div>
+    </div>
+</div>
+
+<!-- 页面调用公共插件 -->
+<script src="../../js/vue.js"></script>
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/jquery.cookie.js"></script>
+
+<!-- 日期时间选择器 -->
+<script src="../../js/mui.picker.min.js"></script>
+<script type="text/javascript">
+    new Vue({
+        el:".page",
+        data:{
+            sentData: '',   // 配送日期
+            sentTimeType: '1',  // 配送时段类型
+            sentTime: '',  // 配送时段时间
+            customeTime: '',  // 自定义配送时段时间
+            customeTimeRange: []  // 自定义配送时间段区间
+        },
+        mounted: function(){
+            // 自定义配送时间段区间
+			this.sentData = sessionObtain('sentData')||'';
+			this.sentTimeType = sessionObtain('sentTimeType')||'1';
+			this.customeTime = sessionObtain('customeTime')||'';
+			this.sentTime = sessionObtain('sentTime')||'';
+            var startHours = 8;
+            var endHours = 20;
+            var timeArray = [{text: "00"},{text: "30"}];
+            var customeTimeRange = [];
+            for (var i = startHours; i <= endHours; i++) {
+                customeTimeRange.push(
+                    {"text": i,children:timeArray}
+                )
+            }
+            this.customeTimeRange = customeTimeRange;
+        },
+        methods: {
+		    save: function () {
+			  var that = this;
+			  if (!that.sentData) {
+			      mui.alert("请选择配送日期","提示");
+			     return;
+			  }
+			  if ('5' == that.sentTimeType && isEmpty(that.customeTime)) {
+			     mui.alert("请选择自定义时间段","提示");
+			     return;
+			  }
+			  
+			  var chooseTime = "";
+			  
+			  if ('5' == that.sentTimeType) {
+			     chooseTime = that.sentData + " " + that.customeTime;
+			  } else {
+			     chooseTime = that.sentData + " " + that.sentTime;
+			  }
+			  session('sendTime', chooseTime);
+			  window.location.href = "confirmOrder.html";
+			},
+			chooseType: function (type,event) {
+			  this.sentTimeType = type;
+			  if ('5' != type) {
+			     this.sentTime = $(event.currentTarget).find("span.time").html();
+			  }
+			  session('sentTimeType', type);
+			  session('sentTime', this.sentTime);
+			},
+            // 选择配送日期
+            selectData: function(){
+                var that = this;
+                var options = {
+                    "type":"date",
+                    "beginDate":new Date(),
+                };
+                var picker = new mui.DtPicker(options);
+                picker.show(function(rs) {
+                    /*
+                     * rs.value 拼合后的 value
+                     * rs.text 拼合后的 text
+                     * rs.y 年，可以通过 rs.y.vaue 和 rs.y.text 获取值和文本
+                     * rs.m 月，用法同年
+                     * rs.d 日，用法同年
+                     * rs.h 时，用法同年
+                     * rs.i 分（minutes 的第二个字母），用法同年
+                     */
+                    that.sentData = rs.text;
+					session('sentData', rs.text);
+                });
+            },
+            
+            // 选择自定义时段时间
+            stCustomeTime: function(){
+                var that = this;
+                var cityPicker = new mui.PopPicker({
+                        layer: 2
+                    });
+                cityPicker.setData(that.customeTimeRange);
+                cityPicker.show(function(items) {
+                    that.customeTime = items[0].text + ":" + items[1].text;
+					session('customeTime', that.customeTime);
+                });
+            },
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,486 @@
+<!doctype html>
+<html>
+<head>
+    <title>订单详情</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="../../css/member.css" type="text/css" media="screen"/>
+
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/init.js"></script>
+</head>
+<body>
+<div class='page' :id="'skin_'+styleClass" v-cloak>
+    <header class="common-header blue-style">
+        <div class="top_fixed">
+            <a class="top_icon go_back " @click="goBakc"></a>
+            <h1 class="top_title">订单详情</h1>
+        </div>
+    </header>
+
+    <!--头部信息-->
+    <section class='order-tableinfo' v-if="order.eatType==1">
+        <div class="order-tablebox">
+            <span class="title"></span>
+            <div class='info'>{{order.tableNo}}</div>    
+        </div>
+    </section>
+    <section class="order-state" :class="{'table-state':order.eatType==1}">
+        <div class='order_state' v-if="order.state==4||order.state==5||order.state==-1">
+            <!-- 部分状态添加类名 .disabled -->
+            {{order.stateName}}
+        </div>
+        <div class='order_state' v-else>
+            {{order.stateName}}-{{order.payStateName}}
+        </div>
+        <!-- 订单时间线进度条，单状态订单不展示该模块：如 订单取消 -->
+        <div class="order_line" v-if="order.eatType==1 && order.state==1 && order.payState==1">
+            <div class="items active">
+                <div class='ico'></div>
+                <label>已下单 {{order.createTime|timeSubstr}}</label>
+            </div>
+            <div class="items">
+                <div class='ico'></div>
+                <label>待接单</label>
+            </div>
+            <div class="items">
+                <div class='ico'></div>
+                <label>待完成</label>
+            </div>
+        </div>
+        <div class="order_line" v-if="order.eatType==1 && order.state==2 && order.payState==1">
+            <div class="items active">
+                <div class='ico'></div>
+                <label>已下单 {{order.createTime|timeSubstr}}</label>
+            </div>
+            <div class="items active">
+                <div class='ico'></div>
+                <label>已接单 {{order.receiveTime|timeSubstr}}</label>
+            </div>
+            <div class="items">
+                <div class='ico'></div>
+                <label>待完成</label>
+            </div>
+        </div>
+        <div class="order_line" v-if="order.eatType==1 && order.state==4 && order.payState==2">
+            <div class="items active">
+                <div class='ico'></div>
+                <label>已下单 {{order.createTime|timeSubstr}}</label>
+            </div>
+            <div class="items active">
+                <div class='ico'></div>
+                <label>已接单 {{order.receiveTime|timeSubstr}}</label>
+            </div>
+            <div class="items active">
+                <div class='ico'></div>
+                <label>已完成 {{order.finishTime|timeSubstr}}</label>
+            </div>
+        </div>
+
+        <div class="order_line" v-if="order.eatType==2 && order.state==1 && order.payState==1">
+            <div class="items">
+                <div class='ico'></div>
+                <label>待支付</label>
+            </div>
+            <div class="items">
+                <div class='ico'></div>
+                <label>待接单</label>
+            </div>
+            <div class="items">
+                <div class='ico'></div>
+                <label>待派送</label>
+            </div>
+        </div>
+        <div class="order_line" v-if="order.eatType==2 && order.state==1 && order.payState==2">
+            <div class="items active">
+                <div class='ico'></div>
+                <label>已支付 {{order.payTime|timeSubstr}}</label>
+            </div>
+            <div class="items">
+                <div class='ico'></div>
+                <label>待接单</label>
+            </div>
+            <div class="items">
+                <div class='ico'></div>
+                <label>待派送</label>
+            </div>
+        </div>
+        <div class="order_line" v-if="order.eatType==2 && order.state==2 && order.payState==2">
+            <div class="items active">
+                <div class='ico'></div>
+                <label>已支付 {{order.payTime|timeSubstr}}</label>
+            </div>
+            <div class="items active">
+                <div class='ico'></div>
+                <label>已接单 {{order.receiveTime|timeSubstr}}</label>
+            </div>
+            <div class="items">
+                <div class='ico'></div>
+                <label>待派送</label>
+            </div>
+        </div>
+        <div class="order_line" v-if="order.eatType==2 && order.state==5 && order.payState==2">
+            <div class="items active">
+                <div class='ico'></div>
+                <label>已支付 {{order.payTime|timeSubstr}}</label>
+            </div>
+            <div class="items active">
+                <div class='ico'></div>
+                <label>已接单 {{order.receiveTime|timeSubstr}}</label>
+            </div>
+            <div class="items active">
+                <div class='ico'></div>
+                <label>已送达 {{order.finishTime|timeSubstr}}</label>
+            </div>
+        </div>
+        <!-- 订单时间线进度条 end -->
+    </section>
+
+
+    <!-- 订单商品明细  -->
+    <section class='cells order_detial z-good-list'>
+        <div class='order_title'>
+            商品明细
+        </div>
+        <div class='good_list cells nomargin'>
+            <ul>
+                <li class='cell product' :class="{'noline':index==0}" v-for="(detail,index) in order.detailList">
+                    <div class='cell-td'><img :src='detail.productImg'></div>
+                    <div class="cell-hd">
+                        <div class="name text_elli">{{detail.productName}}</div>
+                        <div class='color_999 pull-m-t-10'>{{detail.showName}}</div>
+                    </div>
+                    <div class="cell-bd t-c">
+                        <span>x{{detail.buyNum}}</span>
+                    </div>
+                    <div class="cell-ft">
+                        <p class='price fz22'>￥<span class='fz28'>{{detail.productPrice*detail.buyNum|NumberFmt}}</span>
+                        </p>
+                    </div>
+                </li>
+            </ul>
+
+            <div class='cell' v-if="order.eatType==1">
+                <div class='cell-td'><span class='label gray'>餐具费</span></div>
+                <div class="cell-hd">
+                    <div class="name">餐具</div>
+                </div>
+                <div class="cell-bd t-c">
+                    <span>x{{order.personNum}}</span>
+                </div>
+                <div class="cell-ft">
+                    <p class='price fz22'>￥<span class='fz28'>{{order.tablewarePrice|NumberFmt}}</span></p>
+                </div>
+            </div>
+
+            <div class='cell' v-else>
+                <div class='cell-td'><span class='label gray'>包装费</span></div>
+                <div class="cell-hd">
+                    <div class="name">餐盒</div>
+                </div>
+                <div class="cell-bd t-c">
+                </div>
+                <div class="cell-ft">
+                    <p class='price fz22'>￥<span class='fz28'>{{order.tablewarePrice|NumberFmt}}</span></p>
+                </div>
+            </div>
+
+            <div class='cell z-cell-width' v-if="order.eatType==2">
+                <div class='cell-td'><span class='label yellow'>配送费</span></div>
+                <div class="cell-hd">
+                    <div class="name">配送</div>
+                </div>
+                <div class="cell-bd t-r">
+                    <!--<span class='line-through color_999'>￥2.00</span>-->
+                </div>
+                <div class="cell-ft">
+                    <p class='price fz22'>￥<span class='fz28'>{{order.deliveryPrice|NumberFmt}}</span></p>
+                </div>
+            </div>
+
+            <div class='cell' v-if="order.mjPrice>0">
+                <div class='cell-td'><span class='label yellow_line'>满减</span></div>
+                <div class="cell-hd">
+                    <div class="name">满减优惠</div>
+                </div>
+                <div class="cell-bd t-c">
+                </div>
+                <div class="cell-ft">
+                    <p class='price fz22'>-￥<span class='fz28'>{{order.mjPrice|NumberFmt}}</span></p>
+                </div>
+            </div>
+
+            <div class='cell' v-if="order.ljPrice>0">
+                <div class='cell-td'><span class='label green_line'>新客</span></div>
+                <div class="cell-hd">
+                    <div class="name">新用户立减</div>
+                </div>
+                <div class="cell-bd t-c">
+                </div>
+                <div class="cell-ft">
+                    <p class='price fz22'>-￥<span class='fz28'>{{order.ljPrice|NumberFmt}}</span></p>
+                </div>
+            </div>
+
+            <div class='cell' v-if="order.integralFree>0">
+                <div class='cell-td'><span class='label yellow_line'>积分</span></div>
+                <div class="cell-hd">
+                    <div class="name">积分抵扣</div>
+                </div>
+                <div class="cell-bd t-c">
+                </div>
+                <div class="cell-ft">
+                    <p class='price fz22'>-￥<span class='fz28'>{{order.integralFree|NumberFmt}}</span></p>
+                </div>
+            </div>
+
+            <div class='cell' v-if="order.otherPrice>0">
+                <div class='cell-td'><span class='label green_line'>其他</span></div>
+                <div class="cell-hd">
+                    <div class="name">其他优惠</div>
+                </div>
+                <div class="cell-bd t-c">
+                </div>
+                <div class="cell-ft">
+                    <p class='price fz22'>-￥<span class='fz28'>{{order.otherPrice|NumberFmt}}</span></p>
+                </div>
+            </div>
+        </div>
+        <div class='totle_price'>
+            {{order.payState==2?'实付款':'需付款'}}：<span class='price'>￥<label
+                class='fz30'>{{order.payPrice|NumberFmt}}</label></span>
+            <div v-if="order.giveIntegral>0">赠积分：<span class='price'><label class='fz26'>{{order.giveIntegral}}</label></span>
+            </div>
+        </div>
+    </section><!-- 订单商品明细 end  -->
+
+    <section class="pull-m-t-20">
+        <div class='order_title'>{{order.eatType==1?"就餐信息":"配送信息"}}</div>
+        <div class='order_dtinfo'>
+            <!-- <div class='items' v-if="order.eatType==1">
+                <span class="title">桌　　号：</span>
+                <div class='info'>{{order.tableNo}}</div>
+            </div> -->
+            <div class='items' v-if="order.eatType==2 && order.orderAddress">
+                <span class="title">收货地址：</span>
+                <div class='info'>
+                    <div>{{order.orderAddress.name}} {{order.orderAddress.mobile}}</div>
+                    <div>{{order.orderAddress.province}} {{order.orderAddress.city}} {{order.orderAddress.region}}
+                        {{order.orderAddress.address}}
+                    </div>
+                </div>
+            </div>
+            <div class='items'>
+                <span class="title">就餐人数：</span>
+                <div class='info'>{{order.personNum}}人</div>
+            </div>
+            <div class='items'>
+                <span class="title">订单备注：</span>
+                <div class='info'>{{order.note}}</div>
+            </div>
+        </div>
+    </section>
+
+    <!--订单信息-->
+    <section class="pull-m-t-20">
+        <div class='order_title'>订单信息</div>
+        <div class='order_dtinfo'>
+            <div class='items'>
+                <span class="title">订单编号：</span>
+                <div class='info'>
+                    <span id="copytext">{{order.entityNo}}</span>
+                    <span class='pull-m-l-20 pull-m-r-20'>|</span>
+                    <span class='color_F7CB19' onclick="copyUrl()">复制</span>
+                </div>
+            </div>
+            <div class='items'>
+                <span class="title">支付方式：</span>
+                <div class='info'>{{order.payTypeName}}</div>
+            </div>
+            <div class='items'>
+                <span class="title">下单时间：</span>
+                <div class='info'>{{order.createTime}}</div>
+            </div>
+            <div class='items'>
+                <span class="title">商户名称：</span>
+                <div class='info'>{{order.vendorName}}</div>
+            </div>
+        </div>
+    </section>
+
+    <div class='order_button_fixed'>
+        <div class='order_button'>
+            <div class='btn btn-yellow' v-if="order.state!=-1 && order.payState!=2 && order.payType!=1"
+                 @click="pay(order.uuid, order.payType)">支付
+            </div>
+            <div class='btn' v-if="order.state==1 && order.payState!=2" @click="cancel(order.uuid)">取消</div>
+        </div>
+    </div>
+
+</div>
+</body>
+<!-- 页面调用公共插件 -->
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/vue.js"></script>
+<script src="../../js/filter.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el: ".page",
+        data: {
+            styleClass: '',  // 换肤颜色
+            order: {},  // 订单数据
+            from: '',//页面跳转来源
+        },
+        mounted: function () {
+            // 获取商户皮肤值
+            var styleClass = obtain("styleClass");
+            // 设置页面皮肤值
+            this.styleClass = styleClass;
+
+            var from = getQueryVariable("from");
+            this.from = from;
+            var orderUuid = getQueryVariable("uuid");
+            // 获取订单数据
+            this.getOrderDetail(orderUuid);
+        },
+        methods: {
+
+            getOrderDetail: function (orderUuid) {
+                var that = this;
+                PostData("/ordermain/getFamily/" + orderUuid, '', function (res) {
+                    if (res && res.returnCode === 1) {
+                        that.order = res.returnMessage;
+                    }
+                }, "", "", "application/x-www-form-urlencoded")
+            },
+            //取消
+            cancel: function (orderUuid) {
+                var that = this;
+                mui.confirm('确定取消订单？', '提示', ['确认', '取消'], function (e) {
+                    if (e.index == 0) {
+                        var qm = {
+                            "id": orderUuid,
+                            "operatorUuid": "",
+                            "operatorName": "",
+                        };
+                        PostData("/ordermain/cancel", qm, function (res) {
+                            if (res && res.returnCode === 1) {
+                                mui.toast('取消成功');
+                                var msg = res.returnMessage;
+                                that.order.state = msg.state;
+                                that.order.payState = msg.payState;
+                                that.order.stateName = msg.stateName;
+                                that.order.payStateName = msg.payStateName;
+                            } else {
+                                mui.toast('取消失败');
+                            }
+                        }, "", "", "application/x-www-form-urlencoded");
+                    }
+                })
+            },
+            pay: function (orderUuid, payType) {
+                if (3 == payType) {
+                    // 微信支付，先调微信预下单接口下单
+                    var data = {
+                        "orderUuid": orderUuid,
+                        "wxplat": obtain("wxplat")
+                    };
+                    PostData("/wxpay/order", JSON.stringify(data), function (res) {
+                        console.log(res);
+                        if (1 === res.returnCode) {
+                            // 预下单成功，根据返回参数唤起微信支付
+                            if (typeof WeixinJSBridge == "undefined") {
+                                if (document.addEventListener) {
+                                    document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+                                } else if (document.attachEvent) {
+                                    document.attachEvent('WeixinJSBridgeReady', onBridgeReady);
+                                    document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+                                }
+                            } else {
+                                onBridgeReady(res, orderUuid);
+                            }
+                        } else {
+                            mui.alert('微信支付失败，请稍后再试');
+                            location.href = 'orderDetail.html?uuid=' + orderUuid + '&from=saveOrder';
+                        }
+                    });
+                } else {
+                    mui.alert('不支持的支付方式');
+                }
+            },
+            //返回操作
+            goBakc: function () {
+                var that = this;
+                if (that.from == 'saveOrder') {
+                    window.location.href = 'index.html';
+                } else {
+                    history.go(-1);
+                }
+            }
+        }
+    });
+
+    function onBridgeReady(result, orderUuid) {
+        var data = result.returnMessage.data;
+        WeixinJSBridge.invoke(
+            'getBrandWCPayRequest', {
+                "appId": data.appId,     //公众号名称，由商户传入
+                "timeStamp": data.timeStamp,         //时间戳，自1970年以来的秒数
+                "nonceStr": data.nonceStr, //随机串
+                "package": data.package,
+                "signType": data.signType,         //微信签名方式：
+                "paySign": data.paySign //微信签名
+            },
+            function (res) {
+                if (res.err_msg == "get_brand_wcpay_request:ok") {
+                    // 支付成功，直接进入订单详情页
+                    location.href = 'orderDetail.html?uuid=' + orderUuid + '&from=saveOrder';
+                } else if (res.err_msg == "get_brand_wcpay_request:cancel") {
+                    mui.alert('您取消了支付', function () {
+                        location.href = 'orderDetail.html?uuid=' + orderUuid + '&from=saveOrder';
+                    });
+                } else {
+                    mui.alert('微信支付失败，请稍后再试', function () {
+                        location.href = 'orderDetail.html?uuid=' + orderUuid + '&from=saveOrder';
+                    });
+                }
+            }
+        );
+    }
+
+    //获取url的参数
+    function getQueryVariable(variable) {
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split("=");
+            if (pair[0] == variable) {
+                return pair[1];
+            }
+        }
+        return (false);
+    }
+
+    // 复制订单号
+    function copyUrl() {
+        var box = document.getElementById("copytext");
+        var selection = window.getSelection();
+        var range = document.createRange();//创建一个选区
+        range.selectNodeContents(box);
+        selection.removeAllRanges();
+        selection.addRange(range);//把当前div添加到选区,此时div会变蓝（选中状态）
+        document.execCommand("copy");//这一步之后，div的innerHTML就放到剪贴板里面了，就可以粘贴了，不止可以在浏览器粘贴，在任何地方都可以。此方法的参数有好多种情况，可问度娘
+        selection.removeAllRanges();//取消div的选中状态，免得看着那个地方蓝蓝的不好看
+        mui.toast('复制成功');
+    }
+</script>
+</html>

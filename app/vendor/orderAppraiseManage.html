@@ -1,0 +1,174 @@
+﻿<!doctype html>
+<html>
+
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="css/member.css" type="text/css" media="screen"/>
+
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/init.js"></script>
+</head>
+
+<body>
+<header class="common-header">
+    <div class="top_fixed">
+        <a class="top_icon go_back" href="storeIndex.html"></a>
+        <h1 class="top_title">订单评价列表</h1>
+    </div>
+</header>
+<section class="common_search">
+    <input type="search" id="query" placeholder="输入订单号搜索">
+</section>
+<div id="app" v-cloak>
+ 	<ul class="nav_view product_list">
+		<li class="nav_view_item" v-for="(item,position) in appraiseList">
+			<span class="item_title">
+       			<img v-if="item.pic1 !== null && item.pic1 !== ''" :src="item.pic1">
+       			<img v-else src="img/pic.png">
+            </span>
+            <div class="item_content">
+                <h2 class="y_name fz26">
+                	<label class="label yellow_line fz16 fr" style="margin-top:.1rem">{{item.auditStateName}}</label>
+                	订单号：{{item.orderNo}}
+                </h2>
+                <div class="y_info">
+                    <div>
+                         <p>
+						 <span class="y_name fz26">会员名称：{{item.customerName}}</span></span>
+                         </p>
+                         <label class="label yellow_line fz16">评分：{{item.score}} 分</label>
+                     </div>
+                     <p>
+                         <a class="btn btn-black" href="javascript: void(0);" @click="toView(item.uuid)">查看/审核</a>
+                     </p>
+                </div>
+            </div>
+        </li>
+    </ul>
+</div>
+
+<!-- MUI框架插件 -->
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/vue.js"></script>
+<script>
+$(function () {
+    // 查询框绑定事件
+    $('#query').on('change', function () {
+        app.search();
+    });
+    
+ 	// 上拉加载更多
+    $(window).scroll(function(){
+        var scrollTop = $(this).scrollTop();
+        var scrollHeight = $(document).height();
+        var windowHeight = $(this).height();
+        if(scrollTop + windowHeight >= scrollHeight){
+            if (app.hasMore == true) {
+                getOrderAppraiseList(true);
+            }
+        }
+    });
+});
+app = new Vue({
+    el: "#app",
+    data: {
+        appraiseList: [],
+        nowPage: 1, 	//当前页码数
+        pageShow: 10,	//每页显示条数
+        hasMore: true,   // 列表上拉是否可以加载更多
+        searchKey:''     //搜索关键字
+    },
+    created: function () {
+        this.$nextTick(function () {
+            getOrderAppraiseList(false);
+        });
+    },
+    methods: {
+        //搜索
+        search(){
+            app.searchKey=$("#query").val();
+            getOrderAppraiseList(false);
+        },
+        toView(uuid){
+        	window.location.href = "orderAppraiseDetail.html?uuid="+uuid;
+        }
+    }
+});
+
+//获取订单评价集合
+function getOrderAppraiseList(scroll){
+    var vendorId = sessionObtain("vendorId");
+    if (scroll) {
+    	app.nowPage += 1;
+    }else{
+    	app.nowPage = 1;
+        app.appraiseList = [];
+    }
+    var qm = {
+        "pageShow": app.pageShow,
+        "queryPage": app.nowPage,
+        "queryParams": {
+            "vendorUuid": {
+                "operation": "EQ",
+                "value": vendorId
+            }
+        },
+        "sortMap": {}
+    }
+    if(app.searchKey!=''){
+        qm.queryParams['orderNo']={
+            "operation": "LIKE",
+            "value": app.searchKey
+        }
+    }
+    var methodName = "userfront/orderappraise/list";
+    var params = {"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+    params["qm"] = JSON.stringify(qm);
+
+    $.ajax({
+        url: window.basePath + methodName,
+        type: "POST",
+        data: params,
+        dataType: "json",
+        success: function (data) {
+            if (data && data.returnCode === 1) {
+                var list = data.data.result;
+                if(list){
+                    //如果滚动，将新数据往list添加
+                    if(scroll){
+                    	app.appraiseList = app.appraiseList.concat(list);
+                    }else{
+                    	app.appraiseList = list;
+                    }
+                    if (list.length < app.pageShow) {
+                        app.hasMore = false;
+                    } else {
+                        app.hasMore = true;
+                    }
+                }
+            }else{
+                if(!isLogin(data.returnCode)) {
+                    window.location.href = 'Login.html';
+                } else {
+                    mui.alert(data.message, '提示');
+                }
+            }
+        }
+    });
+}
+
+</script>
+</body>
+
+</html>

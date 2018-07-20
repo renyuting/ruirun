@@ -1,0 +1,160 @@
+<!doctype html>
+<html>
+<head>
+<title>鲜花蛋糕-极速配送</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" type="text/css" href="../../css/amazeui.swiper.min.css">
+<link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="../../css/shop.css" type="text/css" media="screen" />
+
+<script src="../../js/jquery-1.11.1.min.js"></script>
+<script src="../../js/init.js"></script>
+</head>
+<body>
+<div class="page" v-cloak>
+    <!-- 首页头部 -->
+    <header class="index-header">
+        <h1 class="index-logo">
+            <img :src="storeLogo">
+        </h1>
+        <h2 class="index-storename" @click="showDetial=!showDetial">
+            <s class="ico_store"></s>
+            {{vendorName}}
+            <s class="ico_arrow" :class="{'show':showDetial}"></s>
+        </h2>
+        <!-- <div class="index-search">
+            <input type="search" name="" placeholder="送恋人">
+        </div> -->
+    </header>
+    <!-- 首页头部 end -->
+
+    <!-- 店铺信息  -->
+    <div class='store-detial cells nomargin' :class="{'show':showDetial}">
+        <section class="store-content">
+            <div class='cell cell-access' onclick="vm.showMap()">
+                <div class="cell-hd">
+                    <img src='../../images/area.png'/>
+                </div>
+                <div class="cell-bd">
+                    {{vendorAddress}}
+                </div>
+                <div class="cell-ft">
+                </div>
+            </div>
+            <a class='cell cell-access' :href="'tel:' + vendorMobile">
+                <div class="cell-hd">
+                    <img src='../../images/index_phone.png'/>
+                </div>
+                <div class="cell-bd">
+                     {{vendorMobile}}
+                </div>
+                <div class="cell-ft">
+                </div>
+            </a>
+        </section>
+        <div class="mask" @click="showDetial=false"></div>
+    </div><!-- 店铺信息 end -->
+    
+
+    <!-- 首页滚动广告  -->
+	<div class="has-more" id="showAdvert">
+    <section class="store-swiper">
+        <div class="swiper-container store-banner">
+			<template>
+				<div class="swiper-wrapper">
+					<div class="swiper-slide" v-for="(item,index) in vendorBasic.adverts">
+						<a href="javascript:void(0)">
+							<img :src="item">
+						</a>
+					</div>
+				</div>
+			</template>
+            <!-- Add Pagination -->
+            <div class="y_qhdiv swiper-pagination"></div>
+        </div>
+        <!--首页广告 end-->
+    </section>
+	</div>
+    <!-- 首页滚动广告 end  -->
+
+    <!-- 店铺服务关键字 -->
+    <!-- <section class="store-service"> -->
+        <!-- <span class="items">武汉城区3小时内送达</span> -->
+        <!-- <span class="items">满百包邮</span> -->
+    <!-- </section> -->
+    <!-- 店铺服务关键字 end -->
+
+    <!-- 店铺导航 -->
+	<div class="has-more" id="showCategory">
+    <nav class="store-nav" v-if="commentCategory && commentCategory.length > 0">
+		<a v-for="category in commentCategory"  style="cursor:pointer" @click="toList(category.uuid)">
+            <s><img :src="category.image"></s>
+            {{category.name}}
+        </a>
+    </nav><!-- 店铺导航 end -->
+	</div>
+
+    <!-- 鲜花使用场景列表入口 -->
+    <!-- 鲜花使用场景列表入口 end -->
+
+    <!-- 首页推荐商品 -->
+    <div v-for="(item,position) in modulList">
+    	 <section class="index-product" v-if="item.isShow">
+	        <h2 class="index-title">
+	            <span>{{item.moudelName}}</span>
+	        </h2>
+	        <ul :id="position" class="product-list clearfix has-more">
+	            <li v-for="pro in item.commentProduct">
+	                <a :href="'detail.html?productUuid='+pro.uuid">
+	                    <div class="pic">
+	                    	<img v-if="pro.bigimg !== null && pro.bigimg !== ''" :src="pro.bigimg" width="301px" height="328px" />
+	                    	<img v-else src="../../images/demo/pic_220_1.jpg" width="301px" height="328px"/>
+		                </div>
+	                    <h3 class="name">{{pro.name}}</h3>
+	                    
+	                    <div v-if="pro.promotionType!=0">
+	                    	<span class="price"><span class="make">￥</span>{{pro.promotionPrice}}</span>
+                    		<del class="del"><span class="make">￥</span>{{pro.price}}</del>
+	                    </div>
+						<div v-else>
+	                    	<span class="price"><span class="make">￥</span>{{pro.price}}</span>
+	                    </div>
+	                </a>
+	            </li>
+	        </ul>
+	    </section>
+    </div>
+    <!-- 首页推荐商品 end -->
+   
+    <!-- 底部导航 -->
+    <footer class="foot_nav_fixed">
+        <nav class="foot_nav">
+            <a class="items cur" href="index.html"><s class="ico1"></s>首页</a>
+            <a class="items" href="class.html"><s class="ico2"></s>分类</a>
+            <a class="items" href="cart.html"><s class="ico3"></s>购物车</a>
+            <a class="items" @click="toUserCenter"><s class="ico4"></s>我的</a>
+        </nav>
+    </footer>
+    <!-- 底部导航 end -->
+
+</div>
+
+<!-- 页面调用公共插件 -->
+<script src="../../js/vue.js"></script>
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/jquery.cookie.js"></script>
+<script src="../../js/amazeui.swiper.js"></script>
+<!-- 首页页面JS -->
+<script src="../../js/modal/index.js"></script>
+
+</body>
+</html>

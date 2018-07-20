@@ -1,0 +1,246 @@
+<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="../../css/shop.css" type="text/css" media="screen" />
+
+<script src="../../js/jquery-1.11.1.min.js"></script>
+<script src="../../js/init.js"></script>
+</head>
+<body >
+<div class='page' :id="'skin_'+styleClass" v-cloak>
+	<header class="common-header blue-style">
+	    <div class="top_fixed">
+	        <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+	        <h1 class="top_title">我的订单</h1>
+	    </div>
+    </header>
+	<div class='top_bg'></div>	
+	<!-- 就餐方式  -->
+  <div class='pane_box no_padding'>
+    <a href="confirmOrderTableNo.html" class='type_item navigateTo' v-if="!outStore">
+      <div class='type_title'>桌台</div>
+      <div class='type_content'>
+        <div class='t-r' v-if="tableName">{{floorName}} {{tableName}}</div>
+        <div class='t-r color_999' v-else>请选择</div>
+      </div>
+    </a>
+    <a class='type_item navigateTo' @click="togglePerson" id="showPersonNum">
+      <div class='type_title'>就餐人数</div>
+      <div class='type_content person-num'>
+        <div class='t-r' v-if="personNum">{{personNum}} 人</div>
+        <div class='t-r color_999' v-else>请选择</div>
+      </div>
+    </a>
+    <a class='type_item navigateTo' href="shopAddress.html" v-if="outStore">
+      <div class='type_title'>配送地址</div>
+      <div class='type_content'>
+        <div class="t-r color_999" v-if="!address">选择地址</div>
+        <div class='t-r text_elli' v-else>
+          {{address.consignee}} {{address.mobile}} {{address.address}}
+        </div>
+      </div>
+    </a>
+  </div><!-- 就餐方式 end  -->	
+  
+  
+  <!-- 商品明细  -->
+  <div class='pane_box no_padding'>
+    <!--商品列表  -->
+    <div class='good_list cells nomargin z-gaiborder'>
+	    <ul class="z-listfood">
+          <li class='z-cell' v-if="cartData" v-for="detail in cartData.detailList">
+            <div class='cell-td'><img :src='detail.image'></div>
+            <div class="cell-hd">
+              <div class="name text_elli">{{detail.productName}}</div>
+              <div class='color_999 pull-m-t-10 tit-note' v-if="detail.showName">{{detail.showName}}</div>
+            </div>
+            <div class="cell-ft">
+              <span class='price fz22'>￥<span class='fz28'>{{detail.totalPrice|NumberFmt}}</span></span>
+            </div>
+            <div class="cell-bd t-c z-numminw">
+              <span>x{{detail.buyNum}}</span>
+            </div>
+          </li>
+		</ul>
+      <!--商品列表 end -->
+    <section class="other_cell">
+       <template v-if="!outStore">
+        <div class='z-cell' v-show="personNum">
+          <div class='cell-td'><span class='label gray'>餐具费</span></div>
+          <div class="cell-hd">
+            <div class="name z-name">餐具</div>
+          </div>
+          <div class="cell-ft">
+            <span class='price fz22'>￥<span class='fz28'>{{tablewarePrice|NumberFmt}}</span></span>
+          </div>
+          <div class="cell-bd t-c">
+          </div>
+        </div>
+       </template>
+      <template v-else>
+        <div class='z-cell' v-show="cartData.lunchboxPrice">
+          <div class='cell-td'><span class='label gray'>包装费</span></div>
+          <div class="cell-hd">
+            <div class="name z-name">餐盒</div>
+          </div>
+          <div class="cell-ft">
+            <span class='price fz22'>￥<span class='fz28'>{{cartData.lunchboxPrice|NumberFmt}}</span></span>
+          </div>
+          <div class="cell-bd t-c">
+          </div>
+        </div>
+        
+        <div class='z-cell' v-show="cartData.distributionPrice">
+          <div class='cell-td'><span class='label yellow'>配送费</span></div>
+          <div class="cell-hd">
+            <div class="name z-name">配送</div>
+          </div>
+		  <div class="cell-ft">
+            <span class='price fz22'>￥<span class='fz28'>{{cartData.distributionPriceNew |NumberFmt}}</span></span>
+          </div>
+		  <div class="cell-bd t-c z-numminw" v-if="cartData.distributionPrice!=cartData.distributionPriceNew">
+            <span class='line-through color_999'>￥{{cartData.distributionPrice |NumberFmt}}</span>
+          </div>
+        </div>
+      </template>
+
+      <div class='z-cell' v-if="vendorDiscount.mjOpen && mjPrice > 0">
+        <div class='cell-td'><span class='label yellow_line'>满减</span></div>
+        <div class="cell-hd">
+          <div class="name z-name">下单立减优惠</div>
+        </div>
+        <div class="cell-ft">
+          <span class='price fz22'>-￥<span class='fz28'>{{mjPrice|NumberFmt}}</span></span>
+        </div>
+        <div class="cell-bd t-c">
+        </div>
+      </div>
+      
+      <div class='z-cell' v-if="vendorDiscount.ljOpen && newCustomer">
+        <div class='cell-td'><span class='label green_line'>新客</span></div>
+        <div class="cell-hd">
+          <div class="name z-name">新用户立减</div>
+        </div>
+        <div class="cell-ft">
+          <span class='price fz22'>-￥<span class='fz28'>{{ljPrice|NumberFmt}}</span></span>
+        </div>
+      </div>
+    </section>
+    </div>
+    
+    <div class='cart_totle'>
+      合计 <span class='price'>￥<span class='fz30'>{{allPrice|NumberFmt}}</span></span>
+    </div>
+  </div><!-- 商品明细 end  -->
+  
+  <!-- 支付方式  -->
+  <div class='pane_box no_padding'>
+    <div class='type_item clearfix'>
+      <div class='type_title'>支付方式</div>
+    </div>
+    <div class='z-cell use_integral' v-if="showIntegral">
+      <div class="cell-hd">
+        <span class='fz28'>可用{{deductionIntegral}}积分抵减</span>
+        <p class='fz22 color_999'>现有{{usableIntegral}}积分</p>
+      </div>
+      <div class="cell-ft">
+        <span class='price fz22 pull-m-r-20'>-￥<span class='fz28'>{{canFree|NumberFmt}}</span></span>
+        <span class='check_custom' :class="{'active':isUseIntegral}">
+          <span class='icon' @click="useIntegral"></span>
+        </span>
+      </div>
+    </div>
+    <div class='z-cell pay_type' :class="{'active':payType=='wx'}" @click="changePayType('wx')">
+      <img src='../../images/wx.png' class="fl">
+      <div class="cell-hd">
+        <div class="fz26">微信支付</div>
+      </div>
+      <div class="cell-ft">
+        <div class='raido_custom'>
+          <span class='icon'></span>
+        </div>
+      </div>
+    </div>
+    <div class='z-cell pay_type' :class="{'active':payType=='offline'}" @click="changePayType('offline')">
+      <img src='../../images/ofline.png' class="fl">
+      <div class="cell-hd">
+        <div class="fz26">线下支付</div>
+      </div>
+      <div class="cell-ft">
+        <div class='raido_custom'>
+          <span class='icon'></span>
+        </div>
+      </div>
+    </div>
+  </div><!-- 支付方式 end  -->
+  
+  <!-- 备注  -->
+  <div class='pane_box no_padding mb_150'>
+    <a class='type_item navigateTo' href="confirmOrderNotes.html">
+      <div class='type_title'>备注</div>
+      <div class='type_content'>
+        <div class='t-r text_elli' v-if="orderNote">{{orderNote}}</div>
+        <div class='t-r color_999' v-else>特殊要求</div>
+      </div>
+    </a>
+  </div><!-- 备注 end -->
+  
+   <!--结算按钮  -->
+  <footer class="pay_footer">
+	  <div class='creat_order clearfix'>
+	    <div class='pull-p-l-40 fl'>合计：￥<span class='fz34'>{{payPrice|NumberFmt}}</span></div>
+	    <div class='btn btn-yellow-bg fr' @click="confirmOrder">确认支付</div>
+	  </div>
+  </footer>
+  <!--结算按钮 end -->
+ 
+<!-- 选择就餐人数悬浮 -->
+  <section class="popup" id="personShow" :class="{'show':!personHidden}">
+    <div class="mask" @click="personHidden=true"></div>
+      <div class="popup-content">
+          <div class='popup_title'>就餐人数</div>
+          <div class='spec_list person_list'>
+            <div class='item_content clearfix'>
+              <span :class="{'active':personNum==item}"  v-for="item in personList" @click="chosePersonNum(item)">{{item}}</span>
+            </div>
+          </div>
+      </div>
+  </section>
+  <!-- 选择就餐人数悬浮 end  -->
+</div>
+		
+<!-- 页面调用公共插件 -->
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/jquery.cookie.js"></script>
+<script src="../../js/vue.js"></script>
+<script src="../../js/filter.js"></script>
+<script src="../../js/modal/confirmOrder.js"></script>
+<script type="text/javascript">
+
+	$(function () {
+		var $note = $('.z-listfood .name');
+		if($note) {
+			$note.each(function (i,v) {
+				var $nextNote = $(v).next('.tit-note');
+				if($nextNote.length == 0 || $nextNote.text() == '') {
+					$(v).addClass('onceline');
+				}
+			})
+		}
+	});
+	
+</script>
+</body>
+</html>

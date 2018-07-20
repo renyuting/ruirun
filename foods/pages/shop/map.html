@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" type="text/css" href="../../css/amazeui.swiper.min.css">
+<link rel="stylesheet" href="../../css/shop.css" type="text/css" media="screen" />
+<script src="../../js/jquery-1.11.1.min.js"></script>
+<script src="../../js/init.js"></script>
+<style type="text/css">
+	#container {width:375px; height: 600px;}
+</style>
+</head>
+<body>
+<div class='page' :id="'skin_'+styleClass">
+	<header class="common-header blue-style">
+		<div class="top_fixed">
+			<a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+			<h1 class="top_title">店铺地址</h1>
+		</div>
+	</header>
+	<!-- 加载地图的容器 -->
+	<div id="container"></div>
+	<!-- 加载地图的容器 end -->
+</div>
+<!-- 页面调用公共插件 -->
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/amazeui.swiper.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/vue.js"></script>
+<script src="http://webapi.amap.com/maps?v=1.4.7&key=36bae443ea5b482330869900d8d0c1e9"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el:".page",
+        data:{
+            styleClass:'',  // 换肤颜色
+        },
+        mounted: function(){
+            // 获取商户皮肤值
+            var styleClass = obtain("styleClass")
+            // 设置页面皮肤值
+            this.styleClass = styleClass
+        },
+        methods:{
+        }
+    });
+	//加载地图，如果已经有了一个定位，则将其标注出来
+	var iconimg='../../images/area.png';
+	var map;
+    function init(longitude,latitude){
+        map = new AMap.Map('container', {
+            center: [longitude, latitude],
+            zoom: 17
+        });
+        map.plugin(["AMap.ToolBar"], function() {
+            map.addControl(new AMap.ToolBar());
+        });
+		var marker = new AMap.Marker({
+			icon:iconimg,
+			map:map
+		});
+		marker.on('click',function(ev){
+			var lnglat = ev.lnglat;
+			var lat = lnglat.getLat();
+			var lng = lnglat.getLng();
+			var titleName = sessionObtain("vendorName");
+			var content = sessionObtain("address");
+			window.location.href = "http://api.map.baidu.com/marker?location=" + lat + "," + lng + "&title=" + titleName + "&content=" +content+ "&output=html"
+		});
+    }
+	var longitude=sessionObtain("longitude");
+	var latitude=sessionObtain("latitude");
+	if(longitude !="" && longitude !=null){
+		init(longitude,latitude);
+	}
+</script>
+</body>
+</html>

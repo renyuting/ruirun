@@ -1,0 +1,220 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="css/mui.picker.all.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="css/global.css" type="text/css" media="screen" />
+
+
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/init.js"></script>
+</head>
+<body>
+<!-- 店铺设置 -->
+<div id="main">
+<script id="vendorInfo" type="text/html">
+<header class="common-header">
+	<div class="top_fixed">
+		<a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+        <h1 class="top_title">店铺设置</h1>
+    </div>
+</header>
+<nav class="nav_view m_mt30">
+     
+	<div class="nav_view_item" >
+		<span class="item_title">店铺Logo：</span>
+		<!-- <div class="item_content tr" id="logoImage">
+			<img class="width_40" id="showLogo" src="{{logoImage}}"></img>
+		</div> -->
+	</div>
+	<div class="picture_list" onclick="goUpLoad()">
+		<div class="changan imageHide" id="logoImage">
+			{{if logoImage}}
+			<img id="showLogo" src="{{logoImage}}"></img>
+			{{/if}} 
+		</div>
+	</div>
+	<form id="formUpImgs" action="" method="post" enctype="multipart/form-data" onsubmit="uploadFile(this); return false;" onchange="uploadFile(this); return false;">
+		<input id="upImgs" type="file" multiple name="imgFile" style="display:none;">
+    </form>
+	<div class="nav_view_item">
+		<span class="item_title">店铺名称：</span>
+		<div class="item_content" id="vendorName">
+			{{vendorName}}
+		</div>
+	</div>
+	<div class="nav_view_item">
+		<span class="item_title">店铺地址：</span>
+		<div class="item_content" id="vendorAddress">
+			{{vendorInfo.contactAddress}}
+		</div>
+	</div>
+	<div class="nav_view_item">
+		<span class="item_title">联系电话：</span>
+		<div class="item_content">
+			<input type="text" id="contactMobile" value="{{vendorInfo.contactMobile}}" class="form-control" placeholder="请输入联系电话">
+		</div>
+	</div>
+	<div class="nav_view_item">
+		<span class="item_title">营业时间：</span>
+		<div class="item_content form_time">
+			<input type="text" value="{{vendorInfo.beginTime}}" readonly="" class="form-control" placeholder="00:00" id="startTime">
+			<span>-</span>
+			<input type="text" value="{{vendorInfo.endTime}}"  readonly="" class="form-control" placeholder="23:59" id="endTime">
+		</div>
+	</div>
+	<div class="nav_view_item navigate_right" onclick="modifyPassword()">
+		<span class="item_title">修改密码</span>
+	</div>
+</nav><!-- 店铺设置 end -->
+
+<!-- 保存按钮 -->
+<nav class="edit_btn2">
+	<a href="javascript:save()" class="btn btn-white">保存</a>
+</nav>
+</script>
+</div>
+<!-- 时间选择插件 -->
+<script src="js/mui.min.js"></script>
+<script src="js/mui.picker.min.js"></script>
+<!-- 接口调用公共插件 -->
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+<script src="js/wapImageUploadForOrderEvaluation.js"></script>
+
+<script type="text/javascript">
+	$(function(){
+	    //获取商户信息
+		var accessToken = sessionObtain('accessToken');
+        var userId =  sessionObtain('userId');
+		var deviceId = sessionObtain('deviceId');
+		var vendorId = sessionObtain('vendorId');
+        if (!vendorId) {
+            window.location.href = "Login.html";
+            return;
+        }
+		var methodName = "userfront/vendor/get/" + vendorId;
+	    var params = {"accessToken":accessToken,"userId":userId,"deviceId":deviceId};
+		$.ax(
+			methodName,
+			params,
+			false,
+			"post",
+			"json", 
+			function(data){
+				if (1 == data.returnCode) {
+					var htmlstr = template('vendorInfo', data.data.result);
+					$("#main").html(htmlstr);
+					// 上传图片url
+					$("#formUpImgs").attr("action", window.upLoadPath);
+				}	
+			}
+		);
+
+		// 初始化时间选择插件
+		var dtPickerStart = new mui.DtPicker({type:'time'});
+		var dtPickerEnd = new mui.DtPicker({type:'time'});
+		// 开始时间选择
+		$(document).on("click","#startTime",function(){
+			dtPickerStart.show(function (selectItems) {
+				var start = selectItems.h.value +":"+ selectItems.i.value
+				$("#startTime").val(start)
+			})
+		})
+		// 结束时间选择
+		$(document).on("click","#endTime",function(){
+			dtPickerStart.show(function (selectItems) {
+				var start = selectItems.h.value +":"+ selectItems.i.value
+				$("#endTime").val(start)
+			})
+		})
+	})
+	
+	function save() {
+	   var accessToken = sessionObtain('accessToken');
+       var userId =  sessionObtain('userId');
+	   var deviceId = sessionObtain('deviceId');
+	   var vendorId = sessionObtain('vendorId');
+	   var contactMobile = $("#contactMobile").val();
+	   var beginTime = $("#startTime").val();
+	   var endTime = $("#endTime").val();
+	   var reg = /^1[3|4|5|7|8]\d{9}$/;
+	   if (!reg.test(contactMobile)) {
+	       mui.alert("联系电话格式错误","提示");
+		   return;
+	   }
+	   var methodName = "userfront/vendorinfo/updateVendorInfo";
+	   var params = {"accessToken":accessToken,"userId":userId,"deviceId":deviceId,"vendorId":vendorId,"contactMobile":contactMobile,"beginTime":beginTime,"endTime":endTime};
+		$.ax(
+		methodName,
+		params,
+		false,
+		"post",
+		"json", 
+		function(data){
+		    mui.alert(data.message, '提示', function() {
+			});
+		}
+	 );
+	}
+	
+	function goUpLoad(){
+	   return  $("#upImgs").click();
+	}
+	
+	function uploadFile(oFormElement) {
+	var oReq = new XMLHttpRequest();
+	oReq.onload = doSuccess;
+	oReq.open("post", oFormElement.action,true);
+	oReq.send(new FormData(oFormElement));
+	}
+	
+	
+	function doSuccess () {
+		console.log(this.responseText);
+		var data = JSON.parse(this.responseText);
+		if (1 == data.returnCode) {
+		   var logo = data.data.url;
+		   //修改商户logo
+		   var accessToken = sessionObtain('accessToken');
+           var userId =  sessionObtain('userId');
+		   var deviceId = sessionObtain('deviceId');
+		   var vendorId = sessionObtain('vendorId');
+		   var methodName = "userfront/vendor/updateVendorLogo";
+		   var params = {"accessToken":accessToken,"userId":userId,"deviceId":deviceId,"vendorId":vendorId,"logo":logo};
+			$.ax(
+			methodName,
+			params,
+			false,
+			"post",
+			"json", 
+			function(data){
+				 if (1 == data.returnCode) {
+				 	if ($("#showLogo").length > 0) {
+				 		$("#showLogo").attr("src",logo);
+				 	}else{
+				 		$("#logoImage").append('<img id="showLogo" src="'+logo+'"></img>')
+				 	}
+				    
+				 }
+			}
+		 );
+		   
+		}	
+	}
+
+	function modifyPassword() {
+	   window.location.href = "modifyPassword.html";
+	}
+</script>
+</body>
+</html>

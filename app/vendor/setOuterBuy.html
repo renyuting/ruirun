@@ -1,0 +1,196 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="css/mui.min.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="css/mui.picker.all.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="css/global.css" type="text/css" media="screen" />
+
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/init.js"></script>
+</head>
+<body>
+<!-- 店铺设置 -->
+<div id="main">
+<script id="vendorBasic" type="text/html">
+<header class="common-header">
+	<div class="top_fixed">
+		<a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+        <h1 class="top_title">外卖设置</h1>
+    </div>	
+</header>
+<nav class="nav_view m_mt30">
+	<div class="nav_view_item">
+		<strong class="item_title">开启外卖</strong>
+		<div class="item_content">
+			<div class="mui-switch mui-switch-mini" id="service_switch">
+                <div class="mui-switch-handle"></div>
+            </div>
+		</div>
+	</div>
+	<div id="service_address">
+		<section class="y_none"></section>
+		<div class="nav_view_item">
+			<span class="item_title">配送范围：</span>
+			<div class="item_content">
+				<input type="text" id="supportScope" value="{{vendorBasic.supportScope}}" class="form-control" placeholder="店铺周边多少公里内">
+				<label class="edit_unit">公里</label>
+			</div>
+		</div>
+		<div class="nav_view_item">
+			<span class="item_title">配送费用：</span>
+			<div class="item_content">
+				<input type="text" id="distributionPrice" value="{{vendorBasic.distributionPrice}}" class="form-control" placeholder="元">
+				<label class="edit_unit">元</label>
+			</div>
+		</div>
+		<div class="nav_view_item">
+			<span class="item_title">起送金额：</span>
+			<div class="item_content">
+				<input type="text" id="leastPrice" value="{{vendorBasic.leastPrice}}" class="form-control" placeholder="元">
+				<label class="edit_unit">元</label>
+			</div>
+		</div>
+		<div class="nav_view_item">
+			<span class="item_title">免运费额：</span>
+			<div class="item_content">
+				<input type="text" id="reachPrice" value="{{vendorBasic.reachPrice}}" class="form-control" placeholder="订单满多少元可免运费">
+				<label class="edit_unit">元</label>
+			</div>
+		</div>
+		<div class="nav_view_item">
+			<span class="item_title">配送时段：</span>
+			<div class="item_content form_time">
+				<input type="text"  readonly=""  value="{{vendorBasic.beginTime}}" class="form-control" placeholder="00:00" id="startTime">
+				<span>-</span>
+				<input type="text"  readonly=""  value="{{vendorBasic.endTime}}" class="form-control" placeholder="23:59" id="endTime">
+			</div>
+		</div>
+	</div>
+</nav><!-- 店铺设置 end -->
+
+<!-- 保存按钮 -->
+<nav class="edit_btn2">
+	<a href="javascript:save()" class="btn btn-white">保存</a>
+</nav>
+</script>
+</div>
+<!-- 时间选择插件 -->
+<script src="js/mui.min.js"></script>
+<script src="js/mui.picker.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+
+<script type="text/javascript">
+	$(function(){
+			//获取商户信息
+			var accessToken = sessionObtain('accessToken');
+            var userId =  sessionObtain('userId');
+		    var deviceId = sessionObtain('deviceId');
+		    var vendorId = sessionObtain('vendorId');
+			var methodName = "userfront/vendor/get/" + vendorId;
+			var params = {"accessToken":accessToken,"userId":userId,"deviceId":deviceId};
+			$.ax(
+			methodName,
+			params,
+			false,
+			"post",
+			"json", 
+			function(data){
+			  if (1 == data.returnCode) {
+				 var htmlstr = template('vendorBasic', data.data.result);
+				  $("#main").html(htmlstr);
+				 if (!data.data.result.vendorBasic.supportOut) {
+				    $("#service_switch").removeClass("mui-active");
+					$("#service_address").hide();
+				 } else {
+				    $("#service_switch").addClass("mui-active");
+					$("#service_address").show();
+				 }
+			  }
+				
+			}
+		  );
+	  
+		// 初始化时间选择插件
+		var dtPickerStart = new mui.DtPicker({type:'time'});
+		var dtPickerEnd = new mui.DtPicker({type:'time'});
+		// 开始时间选择
+		$(document).on("click","#startTime",function(){
+			dtPickerStart.show(function (selectItems) {
+				var start = selectItems.h.value +":"+ selectItems.i.value
+				$("#startTime").val(start)
+			})
+		})
+		// 结束时间选择
+		$(document).on("click","#endTime",function(){
+			dtPickerStart.show(function (selectItems) {
+				var start = selectItems.h.value +":"+ selectItems.i.value
+				$("#endTime").val(start)
+			})
+		})
+
+	    // 是否支持外卖配送
+		$('#service_switch')[0].addEventListener('toggle', function(event) {
+			if (event.detail.isActive) {
+				$("#service_address").slideDown(300);
+			} else {
+				$("#service_address").slideUp(300);
+			}
+		});
+	})
+	
+	function save(){
+	   var accessToken = sessionObtain('accessToken');
+	   var userId =  sessionObtain('userId');
+	   var deviceId = sessionObtain('deviceId');
+	   var vendorId = sessionObtain('vendorId');
+	   var supportOut = document.getElementById("service_switch").classList.contains("mui-active");
+	   var supportScope = $("#supportScope").val();
+	   var distributionPrice = $("#distributionPrice").val();
+	   var leastPrice = $("#leastPrice").val();
+	   var reachPrice = $("#reachPrice").val();
+	   var beginTime = $("#startTime").val();
+	   var endTime = $("#endTime").val();
+	   var reg = /^(([1-9][0-9]*)|(([0]\.\d{1,2}|[1-9][0-9]*\.\d{1,2})))$/;
+	   if (!reg.test(supportScope)) {
+	       mui.alert("配送范围必须是整数或最多两位小数","提示");
+		   return;
+	   }
+	   if (!reg.test(distributionPrice)) {
+	       mui.alert("配送费用必须是整数或最多两位小数","提示");
+		   return;
+	   }
+	   if (!reg.test(leastPrice)) {
+	       mui.alert("起送金额必须是整数或最多两位小数","提示");
+		   return;
+	   }
+	   if (!reg.test(reachPrice)) {
+	       mui.alert("满额免运费必须是整数或最多两位小数","提示");
+		   return;
+	   }
+	   var methodName = "userfront/vendorbasic/updateVendorBasic";
+	   var params = {"accessToken":accessToken,"userId":userId,"deviceId":deviceId,"dto":'{"vendorId":"' + vendorId + '","supportOut":"' + supportOut + '","supportScope":"' + supportScope + '","distributionPrice":"' + distributionPrice + '","leastPrice":"' + leastPrice + '","reachPrice":"' + reachPrice + '","beginTime":"' + beginTime + '","endTime":"' + endTime + '"}'};
+		$.ax(
+		methodName,
+		params,
+		false,
+		"post",
+		"json", 
+		function(data){
+		    mui.alert(data.message, '提示');
+		}
+	  );
+	}
+</script>
+</body>
+</html>

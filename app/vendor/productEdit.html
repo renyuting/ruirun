@@ -1,0 +1,1013 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="css/member.css" type="text/css" media="screen" />
+
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/init.js"></script>
+</head>
+<body>
+<header class="common-header">
+	<div class="top_fixed">
+		<a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+        <h1 class="top_title">编辑商品</h1>
+    </div>
+</header>
+<div id="main">
+<script id="productDetail" type="text/html">
+<!-- 商品图片、名称 -->
+<section class="product_info">
+	<div class="m_plr4">
+		<input type="hidden" name="uuid" id="uuid" value="{{uuid}}">
+		<input type="hidden" name="vendorUuid" id="vendorUuid" value="{{vendorUuid}}">
+		<input type="" name="name" id="name" class="form-control" value="{{name}}" placeholder="请输入商品名称">
+		<input type="hidden" id="imageList" name="imageList">
+	</div>
+	<div class="picture_list">
+		<div class="pho_boxs">
+			<div id="photoup">
+			</div>
+		</div>
+		<label for='upImgs' class="imageHide"></label>
+	</div>
+	<p class="f_ccc fz20 m_mb10 m_plr4">最多3张图片，默认第一张为封面</p>
+</section>
+<!-- 商品图片、名称 end -->
+
+<!--WAP浏览器使用-->
+<form id="formUpImgs" action="" method="post" enctype="multipart/form-data" onsubmit="uploadFile(this); return false;" onchange="uploadFile(this); return false;">
+	<input id="upImgs" type="file" multiple name="imgFile" style="display:none;">
+</form>
+
+<!-- 商品详细信息设置 -->
+<section class="product_detial">
+	<nav class="nav_view">
+		<div class="nav_view_item navigate_right" data-fullslide='show' data-target="#specfull">
+			<span class="item_title">规格设置</span>
+			<div class="item_content">
+				<p class="tr f_999" id="isSpec">{{productNoSpecAttrNames}}</p>
+				<input type="hidden" id="specdata" name="specdata">
+			</div>
+		</div>
+		<nav class="nav_view" style="margin-bottom:0px !important" id="specnav">
+			{{each productSpecAttrList as spec}}
+				<div class="nav_view_item">
+					<span class="item_title">{{spec.name}}</span>
+					<div class="item_content">
+						<div class="mui-switch mui-active" data-id="spec_switch" data-templateUuid={{spec.templateAttrUuid}} name={{spec.name}}>
+							<div class="mui-switch-handle"></div>
+						</div>
+					</div>
+				</div>
+				<div data-id="spec_detail" class="product_detial">
+					{{each spec.productAttrValueList as detail}}
+						<div class="nav_view_item">
+							<span class="item_title">{{detail.value}}</span>
+							<input type="hidden" name="valueUuid" class="form-control" value={{detail.templateAttrValueUuid}}>
+							<div class="item_content">
+								<input type="number" name="" value={{detail.price}} class="form-control" placeholder="请输入规格价格">
+								<label class="edit_unit">元</label>
+							</div>
+						</div>
+					{{/each}}
+				</div>
+			{{/each}}
+		</nav>
+		<div class="nav_view_item" id="pricesection">
+			<span class="item_title">商品价格</span>
+			<div class="item_content">
+				<input type="number" name="price" id="price" value="{{price}}" class="form-control" placeholder="请输入商品价格">
+				<label class="edit_unit">元</label>
+			</div>
+		</div>
+		<div class="nav_view_item navigate_right" data-fullslide='show' data-target="#salefull">
+			<span class="item_title">促销设置</span>
+			<div class="item_content">
+				<p class="tr f_999" id="isPromotion">
+					{{if promotionType == '0'}}
+						未设置
+					{{else}}
+						{{if promotionType == '1'}} 折扣{{else}} 优惠 {{/if}}
+						{{if promotionType != '0'}}折扣比率:{{promotionRate}}{{/if}}
+					{{/if}}
+				</p>
+			</div>
+		</div>
+		<div class="nav_view_item">
+			<span class="item_title">包装费用</span>
+			<div class="item_content">
+				<input type="text" name="lunchboxPrice" id="lunchboxPrice" value="{{lunchboxPrice}}" class="form-control" placeholder="包装费用">
+				<label class="edit_unit">元</label>
+			</div>
+		</div>
+		<div class="nav_view_item navigate_right" data-fullslide='show' data-target="#classfull">
+			<span class="item_title">商品分类</span>
+			<div class="item_content">
+				<span id="type_text"></span>
+				<p class="tr f_999" id="type_default">{{categoryName}}</p>
+				<input type="hidden" id="categoryUuid" value="{{categoryUuid}}" >
+			</div>
+		</div>
+		<div class="nav_view_item">
+			<span class="item_title">商品标签</span>
+			<div class="item_content">
+				<div class='raido_box'>
+				    <label class='raido_custom'>
+				    	<input type="radio" name="tag" {{if tag=='xp'}}checked{{/if}} value="xp">
+				        <s class='icon'></s>
+				        <span class='name'>新品</span>
+				    </label>
+				    <label class='raido_custom'>
+				    	<input type="radio" name="tag" {{if tag=='zp'}}checked{{/if}} value="zp">
+				        <s class='icon'></s>
+				        <span class='name'>招牌</span>
+				    </label>
+				</div>
+			</div>
+		</div>
+		<div class="nav_view_item">
+			<span class="item_title">赠送积分</span>
+			<div class="item_content">
+				<input type="text" name="integral" id="integral" value="{{integral}}" class="form-control" placeholder="赠送积分">
+			</div>
+		</div>
+		<div class="nav_view_item">
+			<span class="item_title">商品备注</span>
+			<div class="item_content">
+				<textarea rows="2" cols="30" name="note" id="note" class="form-control" placeholder="商品备注">{{note}}</textarea>
+			</div>
+		</div>
+	</nav>
+</section>
+<!-- 商品详细信息设置 end -->
+</script>
+</div>
+<!-- 保存按钮 -->
+<nav class="fixed_btn">
+	<a href="##" class="btn btn-white" onclick="saveProduct();">上架出售</a>
+</nav>
+
+<!-- 全屏侧滑 规格设置 -->
+<section class="full_slide" id="specfull">
+	<header class="common-header">
+		<div class="top_fixed">
+			<span class="top_icon go_back" data-fullslide='miss'></span>
+	        <h1 class="top_title">规格设置</h1>
+	    </div>
+	</header>
+	<div id="dataList"></div>
+	<script id="spec" type="text/x-handlebars-template">
+	{{#each this}}
+		<nav class="nav_view m_mt30">
+			<div class="nav_view_item">
+				<span class="item_title">{{name}}</span>
+				<input type="hidden" data-id="attrSpec" value={{spec}}>
+				<div class="item_content">
+					<div class="mui-switch mui-active" data-id="service_switch" data-templateUuid="{{templateAttrUuid}}" name={{name}}>
+						<div class="mui-switch-handle"></div>
+					</div>
+				</div>
+			</div>
+			{{#if spec}}
+				<div data-id="service_address" class="product_detial">
+					{{#each productAttrValueList}}
+					<div class="nav_view_item">
+						<span class="item_title">{{this.value}}</span>
+						<div class="item_content">
+							<input type="text" name="" class="form-control" value={{this.price}} placeholder="请输入规格价格">
+							<label class="edit_unit">元</label>
+						</div>
+					</div>
+					{{/each}}
+				</div>
+			{{else}}
+				<div data-id="service_address" class="product_detial">
+					<div class="nav_view_item">
+					{{#each productAttrValueList}}
+						<input type="hidden" name="valueUuid" class="form-control" value={{this.templateAttrValueUuid}}>
+						<span class="item_title">{{this.value}}</span>
+					{{/each}}
+					</div>
+				</div>
+			{{/if}}
+		</nav>
+	{{/each}}
+	</script>
+	<script id="spec1" type="text/x-handlebars-template">
+	{{#each this}}
+		<nav class="nav_view m_mt30">
+			<div class="nav_view_item">
+				<span class="item_title">{{attrName}}</span>
+				<input type="hidden" data-id="attrSpec" value={{spec}}>
+				<div class="item_content">
+					<div class="mui-switch mui-active" data-id="service_switch" data-templateUuid={{templateAttrUuid}} name={{attrName}}>
+						<div class="mui-switch-handle"></div>
+					</div>
+				</div>
+			</div>
+			{{#if spec}}
+				<div data-id="service_address" class="product_detial">
+					{{#each details}}
+					<div class="nav_view_item">
+						<span class="item_title">{{this.value}}</span>
+						<div class="item_content">
+							<input type="text" name="" class="form-control" placeholder="请输入规格价格">
+							<label class="edit_unit">元</label>
+						</div>
+					</div>
+					{{/each}}
+				</div>
+			{{else}}
+				<div data-id="service_address" class="product_detial">
+					<div class="nav_view_item">
+					{{#each details}}
+						<input type="hidden" name="valueUuid" class="form-control" value={{this.valueUuid}}>
+						<span class="item_title">{{this.value}}</span>
+					{{/each}}
+					</div>
+				</div>
+			{{/if}}
+		</nav>
+	{{/each}}
+	</script>
+	<!-- 保存按钮 -->
+	<nav class="edit_btn2">
+		<a href="##" class="btn btn-white" onclick="saveSpecs();">保存</a>
+	</nav>
+</section>
+<!-- 全屏侧滑 规格设置 end -->
+
+<!-- 全屏侧滑 促销设置 -->
+<section class="full_slide" id="salefull">
+	<script id="promotion" type="text/html">
+	<header class="common-header">
+		<div class="top_fixed">
+			<span class="top_icon go_back" data-fullslide='miss'></span>
+	        <h1 class="top_title">促销设置</h1>
+	    </div>
+	</header>
+	
+	<nav class="nav_view m_mt30">
+		<div class="nav_view_item">
+			<span class="item_title">促销类型</span>
+			<div class="item_content">
+				<div class='raido_box'>
+				    <label class='raido_custom'>
+				    	<input type="radio" name="promotionType" value="0" data-promotion="不参与" {{if promotionType == '0'}}checked{{/if}}>
+				        <s class='icon'></s>
+				        <span class='name'>不参与</span>
+				    </label>
+				    <label class='raido_custom'>
+				    	<input type="radio" name="promotionType" value="1" data-promotion="折扣" {{if promotionType == '1'}}checked{{/if}}>
+				        <s class='icon'></s>
+				        <span class='name'>折扣</span>
+				    </label>
+				</div>
+			</div>
+		</div>
+		<div class="nav_view_item">
+			<span class="item_title">折扣比率</span>
+			<div class="item_content">
+				<input type="text" name="promotionRate" id="promotionRate" value={{promotionRate}} class="form-control" placeholder="请输入折扣比率"> 
+			</div>
+		</div>
+		<p class="f_ccc fz20 m_mb10 m_plr4">如果选择了折扣，则必须输入折扣比率，折扣比率以小数输入，比如7.5折，则输入0.75</p>
+	</nav>
+	
+	<!-- 保存按钮 -->
+	<nav class="edit_btn2">
+		<a href="##" class="btn btn-white" onclick="savePromotion();">保存</a>
+	</nav>
+	</script>
+</section>
+<!-- 全屏侧滑 促销设置 end -->
+
+<!-- 全屏侧滑 商品分类 -->
+<section class="full_slide" id="classfull">
+	<header class="common-header">
+		<div class="top_fixed">
+			<span class="top_icon go_back" data-fullslide='miss'></span>
+	        <h1 class="top_title">商品分类</h1>
+	    </div>
+	</header>
+	
+	<!--<nav class="nav_view m_mt30">
+		<div class="nav_view_item">
+			<div class="item_content">
+				<input type="text" name="addCategoryName" id="addCategoryName" class="form-control" placeholder="请输入商品分类名称">
+				<label class="edit_unit f_color1 fz30" onclick="addCate();">新增</label>
+			</div>
+		</div>
+	</nav>-->
+	<section id="cateList">
+		<script id="cate" type="text/html">
+			<nav class="nav_view m_mt30 product_class">
+				{{each result as category i}}
+					<div class="nav_view_item raido_block">
+						<span class="item_title">
+							<input type="text" name="" class="form-control" value={{category.name}} readonly="">
+						</span>
+						<div class="item_content tr">
+							<!--<span class="f_ccc m_mr30 edit class_edit" name={{category.name}} index={{i}}>编辑</span>-->
+							{{if category.state}}
+								<span class="f_ccc m_mr40 edit class_stop" id={{category.uuid}}>停用</span>
+							{{else}}
+								<span class="f_ccc m_mr40 edit class_start" id={{category.uuid}}>启用</span>
+							{{/if}}
+							<label class='raido_custom'>
+								<input type="radio" name="categoryUuid" {{if !category.state}}disabled{{/if}} value={{category.uuid}} {{if category.checked}}checked{{/if}} data-category={{category.name}}>
+								<s class='icon'></s>
+							</label>
+						</div>
+					</div>
+				{{/each}}
+			</nav>
+		</script>
+	</section>
+	<!-- 保存按钮 -->
+	<nav class="edit_btn2">
+		<a href="##" class="btn btn-white" onclick="saveCategory();">保存</a>
+	</nav>
+</section>
+<!-- 全屏侧滑 商品分类 end -->
+
+<section class="modal" id="classedit">
+	<div class="mask" data-fullslide='miss'></div>
+	<div class="modal-content">
+		<h2 class="modal-title">编辑分类</h2>
+		<nav class="item_padding ">
+			<input type="text" name="editCategoryName" id="editCategoryName" class="form-control" placeholder="请输入商品分类名称">
+		</nav>
+		<div class="edit_btn2 m_mt20">
+			<a class="btn btn-primary" href="javascript:editCategory();" id="editClassSubmit">保存</a>
+		</div>
+	</div>
+</section>
+
+
+<!-- 图片上传 -->
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+<script src="js/wapImageUploadForOrderEvaluation.js"></script>
+<script src="https://cdn.bootcss.com/handlebars.js/1.0.0.beta6/handlebars.min.js"></script>
+<script src="js/jquery.cookie.js"></script>
+
+<script type="text/javascript">
+    // 如果没有登录，直接跳转登录页
+    if (!sessionObtain('vendorId')) {
+        window.location.href = "Login.html";
+    }
+
+	var categoryUuid = "";
+	var categoryList ;
+	var index = 0;
+	var vendorUuid = sessionObtain('vendorId');
+	var accessToken = sessionObtain('accessToken');
+	var userId = sessionObtain('userId');
+	var deviceId = sessionObtain('deviceId');
+	$(function(){
+		
+		// 上传图片url
+		$("#formUpImgs").attr("action", window.upLoadPath);
+
+		// 获取当前图片数量
+		var currentImageNum = $("#photoup").children().find("img").length;
+		
+		// 删除图片
+		$(".delete").click(function(){
+			$(this).parents(".changan").remove();
+			
+			var currentImageCount = $(this).children().find("img").length;
+			
+			if (currentImageCount < 3) {
+				$(".imageHide").show();
+			}
+		})
+
+		// 商品分类编辑
+		$(document).on("click",".class_edit",function(e){
+			e.stopPropagation();
+			fullslide_show("#classedit");
+			index = parseInt($(this).attr("index"));
+			$("#editCategoryName").val($(this).attr("name"));
+		})
+
+		// 商品分类编辑的保存操作
+		$(document).on("click","#editClassSubmit",function(e){
+			e.stopPropagation();
+			fullslide_hide("#classedit");
+		})
+		
+		// 商品分类停用
+		$(document).on("click",".class_stop",function(e){
+			e.stopPropagation();
+			stopCategory($(this).attr("id"));			
+		})
+		
+		// 商品分类启用
+		$(document).on("click",".class_start",function(e){
+			e.stopPropagation();
+			startCategory($(this).attr("id"));			
+		})
+		
+		// 加载商品分类
+		buildCate();
+		// 加载商品详情数据
+		loadProductInfo();
+	});
+	// 加载商品详情数据
+	function loadProductInfo(){
+		var productUuid = sessionObtain('productUuid');
+		//var methodName = "userfront/product/get/"+productUuid;
+		var methodName = "userfront/product/toEdit/"+productUuid;
+		var params = {"accessToken":accessToken,"userId":userId,"deviceId":deviceId};
+		$.ax(
+			methodName,
+			params,
+			false,
+			"post",
+			"json", 
+			function(data){
+			  if (1 == data.returnCode) {
+				console.info(data.data.result);
+				var product = data.data.result;
+				var htmlstr = template('productDetail', product);
+				$("#main").html(htmlstr);
+				// 加载商品图片
+				var pics = product.productImageList;
+				$("#imageList").val(JSON.stringify(pics));
+				for(var i =0;i<pics.length;i++){
+					$("#photoup").append("<div class='changan'><img src='"+pics[i].baseImg+"' width='81.69' height='81.69'><div class='delete'></div></div>");
+				}
+				// 绑定删除图片的事件
+				bindDeleteEvent();
+				// 加载hidden域中的规格数据
+				$("#specdata").val(JSON.stringify(JSON.parse(product.attrsJson)));
+				//if(product.spec){
+					// 加载非规格属性设置页面
+					var atts = data.data.result.productNoSpecAttrList;
+					var myTemplate = Handlebars.compile($("#spec").html());         
+					$('#dataList').html(myTemplate(atts));
+					// 绑定toggle事件
+					for(var i=0;i<atts.length;i++){
+						$("div[data-id='service_switch']")[i].addEventListener('toggle', function(event) {
+							if (event.detail.isActive) {
+								$(this).parent().parent().next().slideDown(300);
+							} else {
+								$(this).parent().parent().next().slideUp(300);
+							}
+						});
+						if(!atts[i].status){
+							$("div[data-id='service_switch']:eq("+i+")").removeClass("mui-active");
+							$("div[data-id='service_switch']:eq("+i+")").parent().parent().next().slideUp(300);
+						}
+					}
+					// 加载规格属性设置页面
+					var specAttrList = data.data.result.productSpecAttrList;
+					if(specAttrList.length>0){
+						$("div[data-id='spec_switch']")[0].addEventListener('toggle', function(event) {
+							if (event.detail.isActive) {
+								$(this).parent().parent().next().slideDown(300);
+								$("#pricesection").hide();
+							} else {
+								$(this).parent().parent().next().slideUp(300);
+								$("#pricesection").show();
+							}
+						});
+						if(!specAttrList[0].status){
+							$("div[data-id='spec_switch']").removeClass("mui-active");
+							$("div[data-id='spec_switch']").parent().parent().next().slideUp(300);
+						}else{
+							$("#pricesection").hide();
+						}
+					}
+				/*}else{
+					buildSpec();
+				}*/
+				// 加载促销设置页面
+				var promotionhtmlstr = template('promotion', data.data.result);
+				$("#salefull").html(promotionhtmlstr);
+				// 加载分类设置页面
+				var cates = $("input[name='categoryUuid']");
+				//alert(cates.length);
+				console.info(data.data.result.categoryUuid);
+				for(var i = 0;i<cates.length;i++){
+					var cate = cates[i];
+					if($(cate).val()==data.data.result.categoryUuid){
+						$(cate).prop("checked",true);
+					}
+				}
+			  }
+			}
+		 );
+	}
+	/**规格属性设置相关函数 start**/
+	// 加载规格属性
+	function buildSpec(){
+		var methodName = "userfront/vendortemplaterel/getVendorTemplateRel/0";
+		var params = {"vendorUuid":vendorUuid,"accessToken":accessToken,"userId":userId,"deviceId":deviceId};
+		$.ax(
+			methodName,
+			params,
+			false,
+			"post",
+			"json", 
+			function(data){
+			  if (1 == data.returnCode) {
+				console.info(data.data.result);
+				var specs = data.data.result;
+				// 目前只支持设置一个规格
+				var myTemplate = Handlebars.compile($("#spec1").html()); 
+				$('#dataList').html(myTemplate(specs));
+				// 绑定toggle事件
+				for(var i=0;i<specs.length;i++){
+					$("div[data-id='service_switch']")[i].addEventListener('toggle', function(event) {
+						if (event.detail.isActive) {
+							$(this).parent().parent().next().slideDown(300);
+						} else {
+							$(this).parent().parent().next().slideUp(300);
+						}
+					});
+					$("div[data-id='service_switch']:eq("+i+")").removeClass("mui-active");
+					$("div[data-id='service_switch']:eq("+i+")").parent().parent().next().slideUp(300);
+				}
+			  }
+			}
+		 );
+	}
+	// 保存设置的规格信息
+	function saveSpecs(){
+		// 判断元素是否有mui-active的class
+		var switchs = $("div[data-id='service_switch']");
+		var length = switchs.length;
+		var specs = [];
+		var index = 0;
+		var attrNameStr = "";
+		for(var i = 0;i<length;i++){
+			var switchObj = switchs[i];
+			var spec = $(switchObj).parent().parent().children("input[data-id='attrSpec']").val();
+			var status = $(switchObj).hasClass("mui-active");
+			if(status){
+				if(spec){
+					var attrName = $(switchObj).attr("name");
+					var values = new Array();
+					var items = $(switchObj).parent().parent().next().children('.nav_view_item');
+					for(var j=0;j<items.length;j++){
+						var item = items[j];
+						var value = $(item).children("span").html();
+						var price = $(item).children(".item_content").children("input").val();
+						if(price==""){
+							mui.toast("必须输入价格");
+							return;
+						}
+						var value = {
+							"value":value,
+							"price":price,
+							"position":j
+						};
+						values[j]=value;
+					}
+					var spec = {
+						"name":attrName,
+						"spec":true,
+						"productAttrValueList":values,
+						"position":i+1
+					};
+					specs[index++] = spec;
+					attrNameStr += attrName + ",";
+				}else{
+					var templateAttrUuid = $(switchObj).attr("data-templateUuid");
+					var attrName = $(switchObj).attr("name");
+					var values = new Array();
+					var items = $(switchObj).parent().parent().next().children('.nav_view_item').children("span");
+					var valueUuids = $(switchObj).parent().parent().next().children('.nav_view_item').children("input");
+					for(var j=0;j<items.length;j++){
+						var item = items[j];
+						var value = $(item).html();
+						var valueUuidObj = valueUuids[j];
+						var valueUuid = $(valueUuidObj).val();
+						var value = {
+							"templateAttrValueUuid":valueUuid,
+							"value":value,
+							"price":0,
+							"position":j
+						};
+						values[j]=value;
+					}
+					var spec = {
+						"templateAttrUuid":templateAttrUuid,
+						"name":attrName,
+						"spec":false,
+						"productAttrValueList":values,
+						"position":i+1
+					};
+					specs[index++] = spec;
+					attrNameStr += attrName + ",";
+				}
+				//$("#isSpec").html("开启");	
+			}
+		}
+		if(specs.length<=0){
+			$("#isSpec").html("未开启");	
+		}else{
+			$("#isSpec").html(attrNameStr.slice(0,attrNameStr.length-1));
+		}
+		$("#specdata").val(JSON.stringify(specs));
+		console.info($("#specdata").val());
+		fullslide_hide("#specfull");
+	}
+	/**规格属性设置相关函数 end **/
+	/**商品促销相关函数 start **/
+	function savePromotion(){
+		var promotionType = $("input[name='promotionType']:checked").val();
+		var typeName = $("input[name='promotionType']:checked").attr("data-promotion");
+		var promotionRate = $("#promotionRate").val();
+		if(promotionType==1){
+			if(promotionRate==''||promotionRate=='undefined'){
+				mui.toast("请输入折扣比率");
+				return;
+			}else if(promotionRate<=0||promotionRate>=1){
+				mui.toast("折扣比率必须为大于0小于1的小数");
+				return;
+			}
+		}
+		if(promotionType==1){
+			$("#isPromotion").html(typeName+" 折扣比率:"+promotionRate);
+		}else{
+			$("#isPromotion").html(typeName);
+		}
+		fullslide_hide("#salefull");
+	}
+	/**商品促销相关函数 end **/
+	/**商品分类相关函数 start **/
+	// 加载该商户下的商品分类
+	function buildCate(){
+		var qm = {
+			"queryPage":1,
+			"pageShow":30,
+			"queryParams":{
+				"vendorUuid":{
+					"operation":"EQ",
+					"value":vendorUuid
+				}
+			},
+			"sortMap":{
+				"position":"asc"
+			}
+		};
+		console.info(JSON.stringify(qm));
+		var methodName = "userfront/productcate/list";
+		var params = {"qm":JSON.stringify(qm),"accessToken":accessToken,"userId":userId,"deviceId":deviceId};
+		$.ax(
+			methodName,
+			params,
+			false,
+			"post",
+			"json", 
+			function(data){
+			  if (1 == data.returnCode) {
+				console.info(data.data.result);
+				//var cates = data.data.result;
+				categoryList = data.data.result;
+
+				var checkUuid = $("#categoryUuid").val();
+				if(categoryList && categoryList.length > 0){
+				    for(var i=0;i<categoryList.length;i++){
+				        var category = categoryList[i];
+				        if(checkUuid==category.uuid){
+                            category.checked = true;
+                        }else{
+                            category.checked = false;
+                        }
+                    }
+                }
+
+				var htmlstr = template('cate', data.data);
+                $("#cateList").html(htmlstr);
+			  }
+			}
+		 );
+	}
+	function saveCategory(){
+		var categoryUuid = $("input[name='categoryUuid']:checked").val();
+		var categoryName = $("input[name='categoryUuid']:checked").attr("data-category");
+		$("#type_default").html(categoryName);
+		$("#categoryUuid").val(categoryUuid);
+		fullslide_hide("#classfull");
+	}
+	/**商品分类相关函数 end **/
+	function genSpecData(){
+		// 判断元素是否有mui-active的class
+		var specswitch = $("div[data-id='spec_switch']");
+		var status = $(specswitch).hasClass("mui-active");
+		if(status){
+			var templateAttrUuid = $(specswitch).attr("data-templateUuid");
+			var attrName = $(specswitch).attr("name");
+			var values = new Array();
+			var items = $(specswitch).parent().parent().next().children('.nav_view_item');
+			for(var j=0;j<items.length;j++){
+				var item = items[j];
+				var value = $(item).children("span").html();
+				var valueUuid = $(item).children("input").val();
+				var price = $(item).children(".item_content").children("input").val();
+				if(price==""){
+					mui.toast("必须输入价格");
+					return;
+				}
+				var value = {
+					"templateAttrValueUuid":valueUuid,
+					"value":value,
+					"price":price,
+					"position":j
+				};
+				values[j]=value;
+				// 商品价格默认为第一个规格的价格，在列表展示
+				if(j==0) $("#price").val(price);
+			}
+			var spec = {
+				"templateAttrUuid":templateAttrUuid,
+				"name":attrName,
+				"spec":true,
+				"productAttrValueList":values,
+				"position":0
+			};
+			saveSpecs();
+			var specs = JSON.parse($("#specdata").val());
+			var length = specs.length;
+			specs[length] = spec;
+			$("#specdata").val(JSON.stringify(specs));
+		}else{
+			saveSpecs();
+		}
+	}
+	// 保存商品
+	function saveProduct(){
+		/** 由于规格和非规格放在了两个地方
+		* 非规格在二级页面保存时，已经将数据组装到specdata字段中，
+		* 而规格只有在保存时才能组装数据
+		*/
+		genSpecData();
+		var uuid = $("#uuid").val();
+		var name = $("#name").val();
+		if(name=='undefined'||name==""||name==undefined){
+			mui.toast("请输入商品名称");
+			return;
+		}
+		var imageList = $("#imageList").val();
+		var attrs = $("#specdata").val();
+		var price = $("#price").val();
+		if(price=='undefined'||price==""||price==undefined){
+			var specswitch = $("div[data-id='spec_switch']");
+			var switchstatus = $(specswitch).hasClass("mui-active");
+			if(!switchstatus){
+				mui.toast("请输入商品价格");
+				return;
+			}
+		}
+		var promotionType = $("input[name='promotionType']:checked").val();
+		//var promotionPrice = $("#promotionPrice").val();
+		var promotionRate = $("#promotionRate").val();
+		var lunchboxPrice = $("#lunchboxPrice").val();
+		if(lunchboxPrice=='undefined'||lunchboxPrice==""||lunchboxPrice==undefined){
+			mui.toast("请输入包装价格");
+			return;
+		}
+		var categoryUuid = $("input[name='categoryUuid']:checked").val();
+		if(categoryUuid=='undefined'||categoryUuid==""||categoryUuid==undefined){
+			mui.toast("请选择商品分类");
+			return;
+		}
+		var tag = $("input[name='tag']:checked").val();
+		if(tag=='undefined'||tag==""||tag==undefined){
+			//mui.toast("请选择商品标签");
+			//return;
+			tag = "";
+		}
+		var integral = $("#integral").val();
+		var note = $("#note").val();
+		var isSpec = false;
+		
+		if(attrs!=""&&attrs!="undefined"&&attrs!="[]"){
+			isSpec = true;
+		}
+        var vendorUuid = $("#vendorUuid").val();
+		var dto = {
+			"uuid":uuid,
+			"categoryUuid":categoryUuid,
+			"name":name,
+			"promotionType":promotionType,
+			"promotionRate":promotionRate,
+			"price":price,
+			"lunchboxPrice":lunchboxPrice,
+			"tag":tag,
+			"integral":integral,
+			"note":note,
+			"state":true,
+			"vendorUuid":vendorUuid,
+			"isSpec":isSpec,
+			"isSellOut":false,
+			"productAttrList":[],
+			"productImageList":[],
+		};
+		if(isSpec){
+			console.info(attrs);
+			dto.productAttrList = JSON.parse(attrs);
+		}
+		dto.productImageList = JSON.parse(imageList);
+		// ajax请求保存商品数据
+		console.info(JSON.stringify(dto));
+		var methodName = "userfront/product/edit";
+	    //var params = {"dto":JSON.stringify(dto),"accessToken":"b439d2d4ec0bd3c633d405b8423c1e15","userId":"5fb84a12fede4be598e7795c086a58d3","deviceId":"12121"};
+		var params = {"dto":JSON.stringify(dto),"accessToken":accessToken,"userId":userId,"deviceId":deviceId};
+		$.ax(
+			methodName,
+			params,
+			false,
+			"post",
+			"json", 
+			function(data){
+			  if (1 == data.returnCode) {
+				console.info(data);
+				mui.toast(data.message);
+				window.location.href = 'productManage.html';
+			  }
+			}
+		 );
+	}
+	/**商品分类CUD函数 start **/
+	// 新增分类
+	function addCate(){
+		var vendorUuid = sessionObtain('vendorId');
+		var name = $("#addCategoryName").val();
+		if (name === '' || name === null || name === undefined) {
+            mui.alert('请填写分类名称', '提示', '确认');
+            return;
+        }
+		var dto = {
+			name: name,
+            vendorUuid: vendorUuid,
+            state: '1',
+			type: 1
+        };
+		var methodName = "userfront/productcate/add";
+		var params = {"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        params["dto"] = JSON.stringify(dto);
+        $.ax(
+             methodName,
+             params,
+             false,
+             null,
+             null,
+             function(data){
+				console.info(data);
+            	 if (data.returnCode == 1) {
+                     mui.toast('新增分类成功');
+                     $("#addCategoryName").val("");
+                     buildCate();
+                 } else {
+                     mui.toast(result.message);
+                 }
+             }
+         );
+	}
+	// 编辑分类
+	function editCategory(){
+		var name = $("#editCategoryName").val();
+		if (name === '' || name === null || name === undefined) {
+            mui.alert('请填写分类名称', '提示', '确认');
+            return;
+        }
+		var dto = categoryList[index];
+		dto["name"] = name;
+		var methodName = "userfront/productcate/edit";
+		var params = {"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        params["dto"] = JSON.stringify(dto);
+        $.ax(
+             methodName,
+             params,
+             false,
+             null,
+             null,
+             function(data){
+            	 if (data.returnCode === 1) {
+                     mui.toast('编辑分类成功');
+                     buildCate();
+                 } else {
+                     mui.toast(data.message);
+                 }
+             }
+         );
+	}
+	// 停用分类函数
+	function stopCategory(uuid){
+		var methodName = "userfront/productcate/stop";
+		var params = {"changeUuid":uuid,"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        $.ax(
+             methodName,
+             params,
+             false,
+             "post",
+             "json", 
+             function(data){
+            	 if (data.returnCode === 1) {
+                     mui.toast('停用分类成功');
+                     buildCate();
+                 } else {
+                     mui.toast(data.message);
+                 }
+             }
+         );
+	}
+	
+	// 启用分类函数
+	function startCategory(uuid){
+		var methodName = "userfront/productcate/start";
+		var params = {"changeUuid":uuid,"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        $.ax(
+             methodName,
+             params,
+             false,
+             "post",
+             "json", 
+             function(data){
+            	 if (data.returnCode === 1) {
+                     mui.toast('启用分类成功');
+                     buildCate();
+                 } else {
+                     mui.toast(data.message);
+                 }
+             }
+         );
+	}
+	/**商品分类CUD函数 end **/
+	/**商品图片处理相关函数 start **/
+	// 上传图片
+	function uploadFile(oFormElement) {
+		var oReq = new XMLHttpRequest();
+		oReq.onload = doSuccess;
+		var action = window.upLoadPath;
+		oReq.open("post", action,true);
+		oReq.send(new FormData(oFormElement));
+	}
+	// 上传图片回调函数
+	function doSuccess () {
+		console.log(this.responseText);
+		var data = JSON.parse(this.responseText);
+		if (1 == data.returnCode) {
+		   var url = data.data.url;
+		   console.info(url);
+		   var picHtml = "<div class='changan'><img src='"+url+"' width='81.69' height='81.69'></img><div class='delete'></div></div>";
+		   $("#photoup").append(picHtml);
+		   buildImageData();
+		   bindDeleteEvent();
+		}	
+	}
+	function buildImageData(){
+		var imageData = [];
+		var images = $("#photoup").children(".changan").children("img");
+		for(var i = 0;i<images.length;i++){
+			var image = images[i];
+			var url = $(image).attr("src");
+			var pic = {
+				"baseImg":url,
+			}
+			if(i==0) pic.isMainImg = true;
+			else pic.isMainImg = false;
+			imageData[i]=pic;
+		}
+		$("#imageList").val(JSON.stringify(imageData));
+		console.info($("#imageList").val());
+		// 如果图片已经有三张，则隐藏上传按钮
+		if(images.length>=3){
+			$(".imageHide").hide();
+		}
+	}
+	
+	function bindDeleteEvent(){
+		// 删除图片
+		$(".delete").click(function(){
+			var currentImageCount = $(this).parents(".changan").length;
+			$(this).parents(".changan").remove();
+			if (currentImageCount < 3) {
+				$(".imageHide").show();
+			}
+			// 重新组装图片数据
+			buildImageData();
+		})
+	}
+	/**商品图片处理相关函数 end **/
+</script>
+</body>
+</html>

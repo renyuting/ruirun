@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+
+<!--插件css 引用到 global 上面-->
+<link href="../../css/mui.picker.css" rel="stylesheet" />
+<link href="../../css/mui.poppicker.css" rel="stylesheet" />
+
+
+<link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="../../css/shop.css" type="text/css" media="screen" />
+
+
+<script src="../../js/jquery-1.11.1.min.js"></script>
+<script src="../../js/init.js"></script>
+
+
+</head>
+<body>
+<div class='page' :id="'skin_'+styleClass" v-cloak>
+<header class="common-header blue-style">
+    <div class="top_fixed">
+        <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+        <h1 class="top_title">收货地址</h1>
+    </div>
+</header>
+<!--页面头部 end-->
+
+<section class="delivery_address">
+	<ol>
+
+		<li :class="{'active':selectAddressId==item.uuid}" v-if="addressList" v-for="(item,idx) in addressList" @click="selectAddress(idx)">
+			<label class="cart_radio fl">
+				<b class="m_ico"></b>
+			</label>
+			<div class="fl m_left">
+				<div class="m_tit"><h3>{{item.consignee}}<span class="y_badge y_label" v-if="item.defaultAddress">默认</span></h3><span class="fr m_span">{{item.mobile}}</span></div>
+				<p>{{item.provinceName}}{{item.cityName}}{{item.regionName}}{{item.address}}</p>
+			</div>
+			<div class="m_right m_edit">
+				<img src="../../images/edit.png" @click.stop="editAddress(idx)">
+			</div>
+		</li>
+	</ol>
+</section>
+
+<section class="m_newlyadded">
+	<div class="m_newlyaddedbox" @click="addAddress">
+		<s></s>添加收货地址
+	</div>
+</section>
+</div>
+
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/mui.picker.js"></script>
+<script src="../../js/mui.poppicker.js"></script>
+<script src="../../js/vue.js"></script>
+<script src="../../js/modal/shopAddress.js"></script>
+<script>
+	//单选事件
+	/*$(".delivery_address li .cart_radio").click(function(){
+		$(this).parents('li').toggleClass('active').siblings('li').removeClass('active');
+	});*/
+</script>
+
+</body>
+</html>

@@ -1,0 +1,140 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>我的优惠券</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="../../css/member.css" type="text/css" media="screen"/>
+
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/init.js"></script>
+</head>
+<body>
+
+<div class='page' :id="'skin_'+styleClass">
+    <header class="common-header">
+        <div class="top_fixed">
+            <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+            <h1 class="top_title">我的优惠券</h1>
+        </div>
+    </header>
+
+    <nav class="top-tab">
+        <span class="tab-pane" :class="{'active':couponCur==1}" @click="couponCur=1">店铺</span>
+        <span class="tab-pane" :class="{'active':couponCur==2}" @click="couponCur=2">菜品</span>
+    </nav>
+    
+    <!-- 店铺优惠券 -->
+    <section class="coupon-list" v-show="couponCur==1">
+        <table>
+            <tr>
+                <td class="money" width="30%">
+                    <span>￥ <span class="size">10</span></span>
+                    <p>满10元可用</p>
+                </td>
+                <td class="info" width="70%">
+                    <h2 class="name">全部菜品可用</h2>
+                    <p>有效期</p>
+                    2018.09.11 - 2018.10.11
+                </td>
+            </tr>
+            <tr>
+                <td class="money" width="30%">
+                    <span>￥ <span class="size">10</span></span>
+                    <p>满10元可用</p>
+                </td>
+                <td class="info" width="70%">
+                    <h2 class="name">全部菜品可用</h2>
+                    <p>有效期</p>
+                    2018.09.11 - 2018.10.11
+                </td>
+            </tr>
+            <tr>
+                <td class="money" width="30%">
+                    <span>￥ <span class="size">10</span></span>
+                    <p>满10元可用</p>
+                </td>
+                <td class="info" width="70%">
+                    <h2 class="name">全部菜品可用</h2>
+                    <p>有效期</p>
+                    2018.09.11 - 2018.10.11
+                </td>
+            </tr>
+            <tr>
+                <td class="money" width="30%">
+                    <span>￥ <span class="size">10</span></span>
+                    <p>满10元可用</p>
+                </td>
+                <td class="info" width="70%">
+                    <h2 class="name">全部菜品可用</h2>
+                    <p>有效期</p>
+                    2018.09.11 - 2018.10.11
+                </td>
+            </tr>
+            <tr>
+                <td class="money" width="30%">
+                    <span>￥ <span class="size">10</span></span>
+                    <p>满10元可用</p>
+                </td>
+                <td class="info" width="70%">
+                    <h2 class="name">全部菜品可用</h2>
+                    <p>有效期</p>
+                    2018.09.11 - 2018.10.11
+                </td>
+            </tr>
+        </table>
+    </section><!-- 店铺优惠券 end -->
+
+    <!-- 菜品优惠券 -->
+    <section class="coupon-list" v-show="couponCur==2">
+        <table>
+            <tr>
+                <td class="money" width="30%">
+                    <p>满10元可用</p>
+                </td>
+                <td class="info" width="70%">
+                    <h2 class="name">鱼香肉丝盖饭</h2>
+                    <p>有效期</p>
+                    2018.09.11 - 2018.10.11
+                </td>
+            </tr>
+        </table>
+    </section><!-- 菜品优惠券 end -->
+
+</div>
+
+
+<!-- 页面调用公共插件 -->
+<script src="../../js/vue.js"></script>
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/jquery.cookie.js"></script>
+
+<script type="text/javascript">
+    var vm = new Vue({
+        el: ".page",
+        data: {
+            styleClass: '',  // 换肤颜色
+            couponCur: 1,   // 店铺优惠券、菜品优惠券
+        },
+        mounted: function () {
+            // 获取商户皮肤值
+            var styleClass = obtain("styleClass");
+            // 设置页面皮肤值
+            this.styleClass = styleClass;
+        },
+        methods: {
+            
+        }
+    });
+</script>
+</body>
+</html>

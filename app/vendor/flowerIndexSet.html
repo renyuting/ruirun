@@ -1,0 +1,593 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="css/mui.picker.all.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="css/global.css" type="text/css" media="screen" />
+
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/init.js"></script>
+</head>
+<body>
+<header class="common-header">
+	<div class="top_fixed">
+		<a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+        <h1 class="top_title">首页设置</h1>
+    </div>
+</header>
+
+<!-- 店铺广告设置 -->
+<nav class="nav_view m_mt30">
+	<div class="nav_view_item">
+		<span class="item_title">店铺广告图</span>
+	</div>
+	<div class="picture_list">
+		<div class="pho_boxs">
+			<div id="photoup">
+				<label onclick="goUpLoad()" class="imageHide"></label>
+			</div>
+		</div>
+		
+	</div>
+	<p class="f_ccc fz20 m_mb10 m_plr4">最多5张图片，建议尺寸690*320px，可为店铺环境，产品广告等</p>
+</nav><!-- 店铺广告设置 end -->
+
+<!-- 推荐分类设置 -->
+<nav class="nav_view m_mt30">
+	<div class="nav_view_item navigate_right" data-fullslide='show' data-target="#categoryfull">
+		<span class="item_title">推荐分类</span>
+			<div class="item_content">
+			<p class="tr f_999" id="showcategoryName">
+			</p>
+			</div>
+	</div>
+</nav><!-- 推荐分类设置 end -->
+
+<!-- 推荐商品1设置 -->
+<nav class="nav_view m_mt30">
+	<div class="nav_view_item navigate_right" data-fullslide='show' data-target="#productfull1">
+		<span class="item_title">商品模块1</span>
+			<div class="item_content">
+			<p class="tr f_999" id="showProductName1">
+			</p>
+			</div>
+	</div>
+</nav><!-- 推荐商品1设置 end -->
+
+<!-- 推荐商品2设置 -->
+<nav class="nav_view m_mt30">
+	<div class="nav_view_item navigate_right" data-fullslide='show' data-target="#productfull2">
+		<span class="item_title">商品模块2</span>
+			<div class="item_content">
+			<p class="tr f_999" id="showProductName2">
+			</p>
+			</div>
+	</div>
+</nav><!-- 推荐商品2设置 end -->
+
+<!-- 推荐商品3设置 -->
+<nav class="nav_view m_mt30">
+	<div class="nav_view_item navigate_right" data-fullslide='show' data-target="#productfull3">
+		<span class="item_title">商品模块3</span>
+			<div class="item_content">
+			<p class="tr f_999" id="showProductName3">
+			</p>
+			</div>
+	</div>
+</nav><!-- 推荐商品3设置 end -->
+
+<!-- 全屏侧滑 商品分类 -->
+<section class="full_slide" id="categoryfull">
+	<header class="common-header">
+		<div class="top_fixed">
+			<span class="top_icon go_back" data-fullslide='miss'></span>
+	        <h1 class="top_title">推荐分类</h1>
+	    </div>
+	</header>
+	
+	<section id="cateList">
+		<script id="cate" type="text/html">
+			<nav class="nav_view m_mt30 product_class" id="categoryChecks">
+				{{each result as category i}}
+					<div class="nav_view_item raido_block">
+						<span class="item_title">
+							<input type="text" name="" class="form-control" value={{category.name}} readonly="">
+						</span>
+						<div class="item_content tr">
+							<label class='raido_custom'>
+								<input type="checkBox" name="{{category.name}}" {{if category.checked}}checked="checked"{{/if}} {{if !category.state}}disabled{{/if}} value={{category.uuid}} data-category={{category.name}}>
+								<s class='icon'></s>
+							</label>
+						</div>
+					</div>
+				{{/each}}
+			</nav>
+		</script>
+	</section>
+	<!-- 保存按钮 -->
+	<nav class="edit_btn2">
+		<a href="##" class="btn btn-white" onclick="saveCategory();">保存</a>
+	</nav>
+</section>
+<!-- 全屏侧滑 商品分类 end -->
+
+<!-- 全屏侧滑 推荐商品1 -->
+<section class="full_slide" id="productfull1">
+	<header class="common-header">
+		<div class="top_fixed">
+			<span class="top_icon go_back" data-fullslide='miss'></span>
+	        <h1 class="top_title">商品模块1</h1>
+	    </div>
+	</header>
+	
+	<nav class="nav_view m_mt30">
+		<div class="nav_view_item">
+			<span class="item_title">模块名称</span>
+			<div class="item_content">
+				<input type="text" name="productName1" id="productName1" class="form-control" placeholder="请输入名称">
+			</div>
+		</div>
+	</nav>
+	<nav class="nav_view">
+		<div class="nav_view_item">
+			<span class="item_title">是否首页展示</span>
+			<div class="item_content">
+				<div class="mui-switch" id="sale_switch1">
+	                <div class="mui-switch-handle"></div>
+	            </div>
+			</div>
+		</div>
+	</nav>
+	
+	<section id="productList0">
+		<script id="product0" type="text/html">
+		<ul class="nav_view product_list" id="proCheck1">
+            {{each result as product}}
+				<div class="nav_view_item raido_block">
+					<span class="item_title">
+						<input type="text" name="" class="form-control" value={{product.name}} readonly="">
+					</span>
+					<div class="item_content tr">
+						<label class='raido_custom'>
+							<input type="checkBox" {{if product.checked}}checked="checked"{{/if}} value={{product.uuid}}>
+							<s class='icon'></s>
+						</label>
+					</div>
+				</div>
+            {{/each}}
+        </ul>
+		</script>
+	</section>
+	<!-- 保存按钮 -->
+	<nav class="edit_btn2">
+		<a href="##" class="btn btn-white" onclick="saveProduct('1');">保存</a>
+	</nav>
+</section>
+<!-- 全屏侧滑 推荐商品1 end -->
+
+<!-- 全屏侧滑 推荐商品2 -->
+<section class="full_slide" id="productfull2">
+	<header class="common-header">
+		<div class="top_fixed">
+			<span class="top_icon go_back" data-fullslide='miss'></span>
+	        <h1 class="top_title">商品模块2</h1>
+	    </div>
+	</header>
+	
+	<nav class="nav_view m_mt30">
+		<div class="nav_view_item">
+			<span class="item_title">模块名称</span>
+			<div class="item_content">
+				<input type="text" name="productName2" id="productName2" class="form-control" placeholder="请输入名称">
+			</div>
+		</div>
+	</nav>
+	<nav class="nav_view">
+		<div class="nav_view_item">
+			<span class="item_title">是否首页展示</span>
+			<div class="item_content">
+				<div class="mui-switch" id="sale_switch2">
+	                <div class="mui-switch-handle"></div>
+	            </div>
+			</div>
+		</div>
+	</nav>
+	
+	<section id="productList1">
+		<script id="product1" type="text/html">
+		<ul class="nav_view product_list" id="proCheck2">
+            {{each result as product}}
+				<div class="nav_view_item raido_block">
+					<span class="item_title">
+						<input type="text" name="" class="form-control" value={{product.name}} readonly="">
+					</span>
+					<div class="item_content tr">
+						<label class='raido_custom'>
+							<input type="checkBox" {{if product.checked}}checked="checked"{{/if}} value={{product.uuid}}>
+							<s class='icon'></s>
+						</label>
+					</div>
+				</div>
+            {{/each}}
+        </ul>
+		</script>
+	</section>
+	<!-- 保存按钮 -->
+	<nav class="edit_btn2">
+		<a href="##" class="btn btn-white" onclick="saveProduct('2');">保存</a>
+	</nav>
+</section>
+<!-- 全屏侧滑 推荐商品2 end -->
+
+<!-- 全屏侧滑 推荐商品2 -->
+<section class="full_slide" id="productfull3">
+	<header class="common-header">
+		<div class="top_fixed">
+			<span class="top_icon go_back" data-fullslide='miss'></span>
+	        <h1 class="top_title">商品模块3</h1>
+	    </div>
+	</header>
+	
+	<nav class="nav_view m_mt30">
+		<div class="nav_view_item">
+			<span class="item_title">模块名称</span>
+			<div class="item_content">
+				<input type="text" name="productName3" id="productName3" class="form-control" placeholder="请输入名称">
+			</div>
+		</div>
+	</nav>
+	<nav class="nav_view">
+		<div class="nav_view_item">
+			<span class="item_title">是否首页展示</span>
+			<div class="item_content">
+				<div class="mui-switch" id="sale_switch3">
+	                <div class="mui-switch-handle"></div>
+	            </div>
+			</div>
+		</div>
+	</nav>
+	
+	<section id="productList2">
+		<script id="product2" type="text/html">
+		<ul class="nav_view product_list" id="proCheck3">
+            {{each result as product}}
+				<div class="nav_view_item raido_block">
+					<span class="item_title">
+						<input type="text" name="" class="form-control" value={{product.name}} readonly="">
+					</span>
+					<div class="item_content tr">
+						<label class='raido_custom'>
+							<input type="checkBox" {{if product.checked}}checked="checked"{{/if}} value={{product.uuid}}>
+							<s class='icon'></s>
+						</label>
+					</div>
+				</div>
+            {{/each}}
+        </ul>
+		</script>
+	</section>
+	<!-- 保存按钮 -->
+	<nav class="edit_btn2">
+		<a href="##" class="btn btn-white" onclick="saveProduct('3');">保存</a>
+	</nav>
+</section>
+<!-- 全屏侧滑 推荐商品2 end -->
+
+<!--WAP浏览器使用-->
+<form id="formUpImgs" action="" method="post" enctype="multipart/form-data" onsubmit="AJAXSubmit(this); return false;" onchange="AJAXSubmit(this); return false;">
+	<input id="upImgs" type="file" multiple name="imgFile" style="display:none;">
+</form>
+
+<!-- 保存按钮 -->
+<nav class="edit_btn2">
+	<a href="javascript:save()" class="btn btn-white">保存</a>
+</nav>
+
+<!-- 图片上传 -->
+<script src="js/mui.min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/base.js"></script>
+<script src="js/template.js"></script>
+<script src="js/wapImageUploadForOrderEvaluation.js"></script>
+
+
+<script type="text/javascript">
+	var accessToken = sessionObtain('accessToken');
+	var userId =  sessionObtain('userId');
+	var deviceId = sessionObtain('deviceId');
+	var vendorId = sessionObtain('vendorId');
+	var commendCategoryids = "";
+	var commendProductids = ["","",""];
+	var nowPage = [1,1,1];
+    var pageShow = [10,10,10];
+    var hasMore = [true,true,true];
+	$(function(){
+		// 上传图片url
+		$("#formUpImgs").attr("action", window.upLoadPath);
+		
+		// 上拉加载更多
+        $(window).scroll(function () {
+            var scrollTop = $(this).scrollTop();
+            var scrollHeight = $(document).height();
+            var windowHeight = $(this).height();
+            if (scrollTop + windowHeight >= scrollHeight) {
+                if (hasMore === true) {
+                    queryProduct(true);
+                }
+            }
+        });
+		
+        //获取商户信息
+		var methodName = "userfront/vendor/get/" + vendorId;
+	    var params = {"accessToken":accessToken,"userId":userId,"deviceId":deviceId};
+		$.ax(
+		methodName,
+		params,
+		false,
+		"post",
+		"json", 
+		function(data){
+		  if (1 == data.returnCode) {
+		      var adverts = data.data.result.vendorBasic.adverts;
+			  commendCategoryids = data.data.result.vendorBasic.commendCategorys;
+			  commendProductids[0] = data.data.result.vendorBasic.commendProducts1;
+			  commendProductids[1] = data.data.result.vendorBasic.commendProducts2;
+			  commendProductids[2] = data.data.result.vendorBasic.commendProducts3;
+			  $("#showcategoryName").html(data.data.result.vendorBasic.commendCategoryNames);
+			  // 回显推荐商品模块名称
+			  $("#productName1").val(data.data.result.vendorBasic.productName1);
+			  $("#productName2").val(data.data.result.vendorBasic.productName2);
+			  $("#productName3").val(data.data.result.vendorBasic.productName3);
+			  if (data.data.result.vendorBasic.showProducts1) {
+			      $("#sale_switch1").addClass("mui-active");
+			  } else {
+			      $("#sale_switch1").removeClass("mui-active");
+			  }
+			  if (data.data.result.vendorBasic.showProducts2) {
+			      $("#sale_switch2").addClass("mui-active");
+			  } else {
+			      $("#sale_switch2").removeClass("mui-active");
+			  }
+			  if (data.data.result.vendorBasic.showProducts3) {
+			      $("#sale_switch3").addClass("mui-active");
+			  } else {
+			      $("#sale_switch3").removeClass("mui-active");
+			  }
+			  if (adverts.length > 0) {
+			      for (var i = 0; i < adverts.length; i++) {
+				      var htmlStr = '<p class="changan">'
+						+'<a id="previewImage" name="" >'
+						+'<img src="'+adverts[i]+'" class="uploadImg">'
+						+'</a><span class="delete" name="'+adverts[i]+'"></span><input id="imgName'+adverts[i]+'" type="hidden" value="'+adverts[i]+'" /></p>';
+						
+					 var $imgHtml = $(htmlStr);
+					 $("#photoup").append($imgHtml);
+				  }
+			  }
+			  if (adverts.length >= 5) {
+				  $(".imageHide").hide();
+			  }
+			  buildCate();
+			  buildProduct('0','');
+			  buildProduct('1','');
+			  buildProduct('2','');
+		  }
+			
+		}
+	 );
+	
+	// 删除图片
+	$(document).on("click",".delete",function(){
+		$(this).parents(".changan").remove();
+		
+		var currentImageCount = $(this).children().find("img").length;
+		
+		if (currentImageCount < 5) {
+			$(".imageHide").show();
+		}
+	 })	
+  })
+		// 加载该商户下的商品分类
+	function buildCate(){
+		var qm = {
+			"queryPage":1,
+			"pageShow":30,
+			"queryParams":{
+				"vendorUuid":{
+					"operation":"EQ",
+					"value":vendorId
+				}
+			}
+		};
+		var methodName = "userfront/productcate/list";
+		var params = {"qm":JSON.stringify(qm),"accessToken":accessToken,"userId":userId,"deviceId":deviceId};
+		$.ax(
+			methodName,
+			params,
+			false,
+			"post",
+			"json", 
+			function(data){
+			  if (1 == data.returnCode) {
+			    var productCateList = data.data.result;
+				for (var i = 0; i < productCateList.length; i++) {
+				    var product = productCateList[i];
+					if (commendCategoryids.indexOf(product.uuid) != -1) {
+					    product.checked = true;
+					}
+				}
+				var htmlstr = template('cate', data.data);
+                $("#cateList").html(htmlstr);
+			  }
+			}
+		 );
+	}
+	
+	
+	// 加载该商户下的商品
+	function buildProduct(type,isScroll){
+		if (isScroll) {
+            nowPage[type]++;
+        }
+		var qm = {
+				"queryPage":nowPage[type],
+				"pageShow":pageShow[type],
+				"queryParams":{
+					"vendorUuid":{
+						"operation":"EQ",
+						"value":vendorId
+					},
+					"state":{
+						"operation":"EQ",
+						"value":"1"
+					}
+				}
+		};
+		var methodName = "userfront/product/getProductList";
+		var params = {"qm":JSON.stringify(qm),"accessToken":accessToken,"userId":userId,"deviceId":deviceId};
+		$.ax(
+			methodName,
+			params,
+			false,
+			"post",
+			"json", 
+			function(data){
+			  if (1 == data.returnCode) {
+				  var pager = data.data.pager;
+                  if (pager.totalNum <= pager.pageShow * pager.nowPage) {
+                      hasMore[type] = false;
+                  }
+			      var productList = data.data.result;
+				  for (var i in productList) {
+				      var product = productList[i];
+					  if (commendProductids[type] && commendProductids[type].indexOf(product.uuid) != -1) {
+					      product.checked = true;
+					  }
+				  }
+				  var htmlstr = template('product'+type, data.data);
+                  $("#productList"+type).html(htmlstr);
+			  }
+			}
+		 );
+	}
+	
+	
+	function goUpLoad(){
+	   // 获取当前图片数量
+	   var currentImageNum = $("#photoup").children().find("img").length;
+	  if (currentImageNum >= 5) {
+			$(".imageHide").hide();
+			return;
+		}
+	   return  $("#upImgs").click();
+	}
+	
+	function save() {
+	    // 获取当前图片数量
+	   var imgs = $("#photoup").children().find("img");
+	   if (imgs.length <= 0) {
+	        mui.alert("请先上传广告图", '提示');
+			return;
+	   }
+	   var advert1 = "";
+	   var advert2 = "";
+	   var advert3 = "";
+	   var advert4 = "";
+	   var advert5 = "";
+	   for(var i = 0; i<imgs.length; i++ ){
+	       if (i == 0) {
+		     advert1 = $(imgs[i]).attr("src");
+		   } else if (i == 1) {
+		     advert2 = $(imgs[i]).attr("src");
+		   } else if (i == 2) {
+		     advert3 = $(imgs[i]).attr("src");
+		   }else if(i == 3) {
+		     advert4 = $(imgs[i]).attr("src");
+		   } else if(i == 4) {
+		     advert5 = $(imgs[i]).attr("src");
+		   }
+	   }
+	   var methodName = "userfront/vendorbasic/updateIndex";
+	   var params = {"accessToken":accessToken,"userId":userId,"deviceId":deviceId,"vendorId":vendorId,"advert1":advert1,"advert2":advert2,"advert3":advert3,"advert4":advert4,"advert5":advert5,"showSign":false,"showPromotion":false};
+		$.ax(
+		methodName,
+		params,
+		false,
+		"post",
+		"json", 
+		function(data){
+		    mui.alert(data.message, '提示');
+		})
+	}
+	
+	// 保存选中的商品分类信息
+	function saveCategory(){
+		var categorys = $('#categoryChecks input[type=checkbox]:checked');
+		if (categorys.length == 0) {
+		    mui.alert("请选择推荐分类", '提示');
+			return;
+		}
+		var checkCategorys = [];
+		var checkCategoryNames = "";
+		for(var i = 0; i<categorys.length; i++ ){
+		   checkCategorys.push(categorys[i].value);
+		   checkCategoryNames += categorys[i].name;
+		   if (i != (categorys.length-1)){
+		       checkCategoryNames += ",";
+		   }
+		}
+		var methodName = "userfront/vendorbasic/setCommendCategorys";
+		var params = {"accessToken":accessToken,"userId":userId,"deviceId":deviceId,"vendorId":vendorId,"categorys":checkCategorys};
+		$.ax(
+		methodName,
+		params,
+		false,
+		"post",
+		"json", 
+		function(data){
+		    if (1 == data.returnCode) {
+			   $("#showcategoryName").html(checkCategoryNames);
+			   fullslide_hide("#categoryfull");
+			}
+		})
+	}
+	
+	// 保存选中的商品信息
+	function saveProduct(type){
+		var products = $('#proCheck'+type+' input[type=checkbox]:checked');
+		if (products.length == 0) {
+		    mui.alert("请选择商品", '提示');
+			return;
+		}
+		var checkProducts = [];
+		for(var i = 0; i<products.length; i++ ){
+		   checkProducts.push(products[i].value);
+		}
+		var productName = $("#productName"+type).val();
+		var isShow = $("#sale_switch"+type).hasClass("mui-active");
+		var methodName = "userfront/vendorbasic/setCommendProducts";
+		var params = {"accessToken":accessToken,"userId":userId,"deviceId":deviceId,"vendorId":vendorId,"products":checkProducts,"type":type,"productName":productName,"isShow":isShow};
+		$.ax(
+		methodName,
+		params,
+		false,
+		"post",
+		"json", 
+		function(data){
+		    if (1 == data.returnCode) {
+			   fullslide_hide("#productfull"+type);
+			}
+		})
+	}
+	
+</script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="../../css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="../../css/member.css" type="text/css" media="screen"/>
+
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/init.js"></script>
+</head>
+<body>
+<div class='page' :id="'skin_'+styleClass" v-cloak>
+    <header class="common-header blue-style">
+        <div class="top_fixed">
+            <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+            <h1 class="top_title">评价详情</h1>
+        </div>
+    </header>
+    
+    <section class="pull-m-t-20">
+        <div class='order_dtinfo'>
+            <div class='items'>
+                <span class="title">订单号：</span>
+                <div class='info'>{{dto.orderNo}}</div>
+            </div>
+            <div class='items'>
+                <span class="title">会员名称：</span>
+                <div class='info'>{{dto.customerName}}</div>
+            </div>
+            <div class='items'>
+                <span class="title">评分：</span>
+                <div class='info'>{{dto.score}} 分</div>
+            </div>
+            <div class='items'>
+                <span class="title">评价内容：</span>
+                <div class='info'>{{dto.content}}</div>
+            </div>
+            <div class='items'>
+                <span class="title">评价时间：</span>
+                <div class='info'>{{dto.createTime}}</div>
+            </div>
+            <div class='items'>
+                <span class="title">审核状态：</span>
+                <div class='info'>{{dto.auditStateName}}</div>
+            </div>
+            <div class='items'>
+                <span class="title">审核时间：</span>
+                <div class='info'>{{dto.auditTime}}</div>
+            </div>
+            <!-- 订单商品明细  -->
+    		<section class='cells order_detial z-good-list'>
+		        <div class='good_list cells nomargin'>
+		            <ul>
+		                <li class='cell product noline'>
+		                    <div class='cell-td'><img v-if="dto.pic1 !== null && dto.pic1 !== ''" :src="dto.pic1"></div>
+		                </li>
+		                <li class='cell product'>
+							<img v-if="dto.pic2 !== null && dto.pic2 !== ''" :src="dto.pic2">
+		                </li>
+		                <li class='cell product'>
+							<img v-if="dto.pic3 !== null && dto.pic3 !== ''" :src="dto.pic3">
+		                </li>
+		                <li class='cell product'>
+							<img v-if="dto.pic4 !== null && dto.pic4 !== ''" :src="dto.pic4">
+		                </li>
+		                <li class='cell product'>
+							<img v-if="dto.pic5 !== null && dto.pic5 !== ''" :src="dto.pic5">
+		                </li>
+		            </ul>
+		        </div>
+		    </section>
+        </div>
+    </section>
+</div>
+</body>
+<!-- MUI框架插件 -->
+<script src="../../js/mui.min.js"></script>
+<script src="../../js/base.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/vue.js"></script>
+<script>
+    app = new Vue({
+        el: ".page",
+        data: {
+            dto: {}
+        },
+        created: function () {
+        	// 获取商户皮肤值
+            var styleClass = obtain("styleClass");
+            // 设置页面皮肤值
+            this.styleClass = styleClass;
+            var uuid = getQueryVariable("uuid");
+            getAppraiseDetail(uuid);
+        }
+    });
+
+    // 获取订单明细
+    function getAppraiseDetail(uuid){
+        var methodName = "/orderappraise/get/" + uuid;
+        PostData(methodName, '', function (data) {
+             if (data && data.returnCode === 1) {
+                 app.dto = data.returnMessage;
+             }
+        });
+    }
+
+ 	//获取url的参数
+    function getQueryVariable(variable) {
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i=0;i<vars.length;i++) {
+            var pair = vars[i].split("=");
+            if(pair[0] == variable){return pair[1];}
+        }
+        return(false);
+    }
+  
+</script>
+</html>

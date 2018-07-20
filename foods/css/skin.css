@@ -1,0 +1,70 @@
+@charset "UTF-8";
+/*
+ * 
+ * 换肤的CSS
+ * 
+ * 
+ * */
+
+/* 首页会员快速入口背景颜色、会员中心我的积分头部背景、公共头部标题背景颜色  */
+#skin_red .user_fixed, #skin_red .integral_info, #skin_red .common-header .top_fixed {
+  background-color: #d80602;
+  color: #fff;
+}
+#skin_yellow .user_fixed, #skin_yellow .integral_info, #skin_yellow .common-header .top_fixed {
+  background-color: #FFB914;
+  color: #fff;
+}
+#skin_green .user_fixed, #skin_green .integral_info, #skin_green .common-header .top_fixed {
+  background-color: #70B303;
+  color: #fff;
+}
+#skin_orange .user_fixed, #skin_orange .integral_info, #skin_orange .common-header .top_fixed {
+  background-color: #ff9f3d;
+  color: #fff;
+}
+
+/* 欢迎页 绿色皮肤按钮  */
+#skin_green .buy_type .type_btn {
+  background:linear-gradient(90deg,#6db907,#61ab01,#6db907);
+}
+
+/* 欢迎页、首页头部导航渐变图片  */
+#skin_red .store_info:after {
+  background-image: url(http://www.ydjiasi.com/images/store_red_bg.png)
+}
+#skin_yellow .store_info:after {
+  background-image: url(http://www.ydjiasi.com/images/store_yellow_bg.png)
+}
+#skin_green .store_info:after {
+  background-image: url(http://www.ydjiasi.com/images/store_green_bg.png)
+}
+#skin_orange .store_info:after {
+  background-image: url(http://www.ydjiasi.com/images/store_orange_bg.png)
+}
+
+/* 确认订单页面头部渐变背景色  */
+#skin_red .top_bg {
+  background: -webkit-linear-gradient(top,#d80602,#f21e1a,rgba(247,203,25,0)); /* Safari 5.1-6.0 */
+  background: -o-linear-gradient(bottom,#d80602,#f21e1a,rgba(247,203,25,0)); /* Opera 11.1-12.0 */ 
+  background: -moz-linear-gradient(bottom,#d80602,#f21e1a,rgba(247,203,25,0)); /* Firefox 3.6-15 */
+  background:linear-gradient(to bottom,#d80602,#f21e1a,rgba(247,203,25,0));
+}
+#skin_yellow .top_bg {
+  background: -webkit-linear-gradient(top,#FFB914,#FFDA44,rgba(247,203,25,0)); /* Safari 5.1-6.0 */
+  background: -o-linear-gradient(bottom,#FFB914,#FFDA44,rgba(247,203,25,0)); /* Opera 11.1-12.0 */ 
+  background: -moz-linear-gradient(bottom,#FFB914,#FFDA44,rgba(247,203,25,0)); /* Firefox 3.6-15 */
+  background:linear-gradient(to bottom,#FFB914,#FFDA44,rgba(247,203,25,0));
+}
+#skin_green .top_bg {
+  background: -webkit-linear-gradient(top,#70B303,#90e10b,rgba(247,203,25,0)); /* Safari 5.1-6.0 */
+  background: -o-linear-gradient(bottom,#70B303,#90e10b,rgba(247,203,25,0)); /* Opera 11.1-12.0 */ 
+  background: -moz-linear-gradient(bottom,#70B303,#90e10b,rgba(247,203,25,0)); /* Firefox 3.6-15 */
+  background:linear-gradient(to bottom,#70B303,#90e10b,rgba(247,203,25,0));
+}
+#skin_orange .top_bg {
+  background: -webkit-linear-gradient(top,#ff9f3d,#fcb063,rgba(247,203,25,0)); /* Safari 5.1-6.0 */
+  background: -o-linear-gradient(bottom,#ff9f3d,#fcb063,rgba(247,203,25,0)); /* Opera 11.1-12.0 */ 
+  background: -moz-linear-gradient(bottom,#ff9f3d,#fcb063,rgba(247,203,25,0)); /* Firefox 3.6-15 */
+  background:linear-gradient(to bottom,#ff9f3d,#fcb063,rgba(247,203,25,0));
+}

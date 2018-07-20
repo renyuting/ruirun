@@ -1,0 +1,100 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="css/global.css" type="text/css" media="screen"/>
+    <link rel="stylesheet" href="css/member.css" type="text/css" media="screen"/>
+
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/init.js"></script>
+</head>
+<body>
+<header class="common-header">
+    <div class="top_fixed">
+        <a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+        <h1 class="top_title">桌台管理</h1>
+        <a class="top_right f_color1" href="tableAdd.html">添加新桌台</a>
+    </div>
+</header>
+
+<section id="main">
+    <script id="tableList" type="text/html">
+		{{each result as tableType}}
+		<h2 class="table_title">{{tableType.name}}</h2>
+		<ul class="table_list">
+			{{each tableType.dinnerTableList as table}}
+				<li uuid={{table.uuid}} {{if table.usingStatus != '1' }}class="disabled"{{/if}}>
+        			<p>{{table.no}}</p>
+       				<span>{{if table.usingStatus == '1' }}启用{{else}}停用{{/if}}</span>
+    			</li>
+			{{/each}}
+		</ul>
+		{{/each}}
+	</script>
+</section>
+<!-- MUI框架插件 -->
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+<script type="text/javascript">
+    $(function(){
+    	// 加载桌台数据
+    	getTableList();
+        // 桌台状态切换
+        $(document).on("click",".table_list li",function(){
+        	var self = $(this);
+        	var state = self.is(".disabled")?"1":"0";
+        	var uuid = self.attr("uuid");
+        	var methodName = "userfront/dinnertable/updateState";
+            var params = {"uuid":uuid,"state":state};
+            $.ax(
+                methodName,
+                params,
+                false,
+                null,
+                null,
+                function(data){
+                	if (data.returnCode === 1) {
+                		var str = self.is(".disabled")?"启用":"停用";
+                    	self.toggleClass("disabled").find("span").text(str);
+                	}else{
+                		mui.toast('系统繁忙，请刷新重试！');
+                	}
+                }
+            );
+        })
+    })
+
+    // 获取桌台类型和桌台集合
+    function getTableList(){
+        var vendorId = sessionObtain("vendorId");
+        var methodName = "userfront/dinnertable/dinnerTableList";
+        var params = {"vendorUuid":vendorId,"accessToken":sessionObtain("accessToken"),"userId":sessionObtain("userId"),"deviceId":sessionObtain("deviceId")};
+        $.ax(
+            methodName,
+            params,
+            false,
+            null,
+            null,
+            function(data){
+            	if (data.returnCode === 1) {
+            		var htmlstr = template('tableList', data.data);
+                    $("#main").html(htmlstr);
+            	}else{
+            		mui.toast('系统繁忙，请刷新重试！');
+            	}
+            }
+        );
+    }
+</script>
+</body>
+</html>

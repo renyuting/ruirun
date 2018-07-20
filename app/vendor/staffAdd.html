@@ -1,0 +1,177 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>好吃佬</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="MobileOptimized" content="320"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <link rel="stylesheet" href="css/global.css" type="text/css" media="screen"/>
+
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/init.js"></script>
+</head>
+<body>
+<header class="common-header">
+    <div class="top_fixed">
+        <a class="top_icon go_back mui-action-back" href="javascript: void(0);"></a>
+        <h1 class="top_title">新增员工</h1>
+    </div>
+</header>
+<nav class="nav_view">
+    <div class="nav_view_item">
+        <span class="item_title">员工姓名：</span>
+        <div class="item_content">
+            <input type="text" id="name" class="form-control" placeholder="请输入姓名">
+        </div>
+    </div>
+    <div class="nav_view_item">
+        <span class="item_title">员工电话：</span>
+        <div class="item_content">
+            <input type="text" id="mobile" class="form-control" placeholder="请输入电话">
+        </div>
+    </div>
+    <div class="nav_view_item">
+        <span class="item_title">登录账号：</span>
+        <div class="item_content">
+            <input type="text" id="loginName" class="form-control" placeholder="请输入登录账号">
+        </div>
+    </div>
+    <div class="nav_view_item">
+        <span class="item_title">登录密码：</span>
+        <div class="item_content">
+            <input type="password" id="password" class="form-control" placeholder="请输入登录密码">
+        </div>
+    </div>
+	<div class="nav_view_item">
+		<span class="item_title">员工类型</span>
+		<div class="item_content">
+			<div class='raido_box'>
+				<label class='raido_custom'>
+					<input type="radio" name="employeeType" checked value="2">
+					<s class='icon'></s>
+					<span class='name'>服务员</span>
+				</label>
+				<label class='raido_custom'>
+					<input type="radio" name="employeeType" value="3">
+					<s class='icon'></s>
+					<span class='name'>厨师长</span>
+				</label>
+			</div>
+		</div>
+	</div>
+	<div class="nav_view_item">
+		<span class="item_title">是否是管理员</span>
+		<div class="item_content">
+			<div class="mui-switch mui-active" data-id="manage_switch" name="superManager">
+				<div class="mui-switch-handle"></div>
+			</div>
+		</div>
+	</div>
+</nav>
+<!-- 保存按钮 -->
+<nav class="edit_btn2">
+    <a href="javascript: void(0);" onclick="saveStaff()" class="btn btn-white">保存</a>
+</nav>
+
+<!-- MUI框架插件 -->
+<script src="js/mui.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/main.js"></script>
+<script src="js/template.js"></script>
+<script>
+    // 如果没有登录，直接跳转登录页
+    if (!sessionObtain('vendorId')) {
+        window.location.href = "Login.html";
+    }
+
+    $(function () {
+    });
+
+    function saveStaff() {
+        var name = $.trim($('#name').val());
+        if (name === '' || name === null || name === undefined) {
+            mui.alert('请输入员工姓名', '提示', '确认');
+            $('#name').focus();
+            return;
+        }
+        if (name.length < 2) {
+            mui.alert('员工姓名最少2个字符', '提示', '确认');
+            $('#name').focus();
+            return;
+        }
+        var mobile = $.trim($('#mobile').val());
+        if (mobile === '' || mobile === null || mobile === undefined) {
+            mui.alert('请输入员工手机号', '提示', '确认');
+            $('#mobile').focus();
+            return;
+        }
+        var reg = /^(13[0-9]|14[579]|15[0-3,5-9]|16[6]|17[0135678]|18[0-9]|19[89])\d{8}$/;
+        if (!reg.test(mobile)) {
+            mui.alert('手机号格式错误', '提示', '确认');
+            $('#mobile').focus();
+            return;
+        }
+        var loginName = $.trim($('#loginName').val());
+        if (loginName === '' || loginName === null || loginName === undefined) {
+            mui.alert('请输入员工登录账号', '提示', '确认');
+            $('#loginName').focus();
+            return;
+        }
+        if (loginName.length < 5) {
+            mui.alert('登录账号最少5个字符', '提示', '确认');
+            $('#loginName').focus();
+            return;
+        }
+        var password = $.trim($('#password').val());
+        if (password === '' || password === null || password === undefined) {
+            mui.alert('请输入员工登录密码', '提示', '确认');
+            $('#password').focus();
+            return;
+        }
+        if (password.length < 6) {
+            mui.alert('登录密码最少6个字符', '提示', '确认');
+            $('#password').focus();
+            return;
+        }
+		var employeeType = $("input[name='employeeType']:checked").val();
+		var superManager = false;
+		if($("div[data-id='manage_switch']:eq(0)").hasClass("mui-active")){
+			superManager = true;
+		}
+        var staff = {
+            name: name,
+            mobile: mobile,
+            loginName: loginName,
+            password: password,
+            vendorUuid: sessionObtain('vendorId'),
+			employeeType:employeeType,
+			superManager:superManager
+        };
+        $.axs(
+            'userfront/vendormanager/add',
+            {
+                staff: JSON.stringify(staff),
+                accessToken: sessionObtain('accessToken'),
+                userId: sessionObtain('userId'),
+                deviceId: sessionObtain('deviceId')
+            },
+            function (result) {
+                if (result.returnCode === 1) {
+                    mui.toast('新增员工成功');
+                    setTimeout(function () {
+                        history.back(-1);
+                    }, 1500)
+                } else {
+                    mui.toast(result.message);
+                }
+            }
+        );
+    }
+</script>
+</body>
+</html>

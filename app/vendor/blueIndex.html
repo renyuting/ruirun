@@ -1,0 +1,297 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>好吃佬</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" href="css/mui.picker.all.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="css/global.css" type="text/css" media="screen" />
+
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/init.js"></script>
+</head>
+<body>
+<header class="common-header blue-style">
+	<div class="top_fixed">
+		<a class="top_icon go_back mui-action-back" href="javascript:;"></a>
+        <h1 class="top_title">生意通</h1>
+    </div>
+</header>
+
+<!--头部-->
+<section class="z-topmegs">
+	<p>今日订单收入</p>
+	<h3>0.00 <span>元</span></h3>
+	<div class="z-orderlist">订单笔数 ：0笔 &nbsp;&nbsp;&nbsp; 顾客总数 ：0人</div>
+</section>
+
+<main class="z-chartmain">
+	<div class="z-everydata">
+		<h2>成交金额趋势图</h2>
+		<p>看看哪天收入多，哪天收入少</p>
+		<div class="every-chart">
+			<div id="chartone" style="height:150px;width:100%;overflow:hidden"></div>
+		</div>
+	</div>
+	
+	<div class="z-everydata">
+		<h2>顾客分析</h2>
+		<p>趋势图</p>
+		<div class="every-chart z-lastChart">
+			<div id="charttwo" style="height:200px;width:100%;overflow:hidden"></div>
+		</div>
+	</div>
+	
+</main>
+
+
+<!-- 时间选择插件 -->
+<script src="js/mui.min.js"></script>
+<script src="js/echarts.min.js"></script>
+<script type="text/javascript">
+//	成交金额趋势图
+	var myChart = echarts.init(document.getElementById('chartone')),
+    option = {
+        legend: {
+            top: '0',
+            left: 'auto',
+            textStyle: {
+                color: '#999',
+                fontSize: "12"
+            },
+           
+        },
+		grid:{
+            x:20,
+            y:40,
+            x2:20,
+            y2:20,
+        },
+        xAxis: [
+            {
+            	show: false,
+                boundaryGap: false,
+                data: ['4月30日', '5月1日', '5月2日', '5月3日', '5月4日', '5月5日']
+            }
+        ],
+
+        tooltip: {
+            textStyle: {
+                fontSize: "10",
+            },
+            padding: 5,
+            trigger: 'axis',
+            axisPointer: {
+            	lineStyle:{
+            		opacity: 0,
+            	}
+            },
+            formatter: function (datas) {
+                
+                var res = datas[0].name + '<br/>',
+                    val;
+                for (var i = 0, length = datas.length; i < length; i++) {
+                    val = (datas[i].value);
+                    res += val + '元';
+                }
+                return res;
+            },
+            backgroundColor: '#f9f9f9',
+            textStyle: {
+            	color: '#0C7CD7',
+            }
+        },
+
+        yAxis: [
+        	{
+	            type: 'value',
+	            scale: true,
+	            position: 'left',
+	            axisLine: {
+	               show:false
+	            },
+	            axisLabel: {
+	                textStyle: {
+	                    color: '#0C7CD7'
+	                }
+	            },
+	            splitLine: {
+	                lineStyle: {
+	                    color: ['#eee']
+	                }
+	            },
+	            axisTick:{
+			        show:false
+			    },
+			    axisLabel : {
+		            formatter: function(){
+		                  return "";
+		            }
+		       },
+		      
+        	},
+            
+
+        ],
+
+        series: [
+            {
+                type: 'line',
+                textStyle: {
+                    color: '#222',
+                    fontSize: "14"
+                },
+                itemStyle: {
+                    normal: {
+                        color: '#0C7CD7',
+                        lineStyle: {
+                        	width: 1,
+			                color: "#0C7CD7"
+			            }
+                    }
+                },
+                symbolSize: 6,
+
+                data: [90, 95, 110, 105, 123, 130]
+
+            },
+
+           
+        ],
+       
+
+    };
+	// 使用刚指定的配置项和数据显示图表。
+	myChart.setOption(option, true);
+			
+	
+//	顾客分析
+var myChart2 = echarts.init(document.getElementById('charttwo')),
+    option2 = {
+        legend: {
+            top: '0',
+            left: 'auto',
+            textStyle: {
+                color: '#999',
+                fontSize: "12"
+            },
+           
+        },
+		grid:{
+            x:30,
+            y:30,
+            x2:30,
+            y2:40,
+        },
+        xAxis: [
+            {
+            	show: true,
+                boundaryGap: false,
+                data: ['4.30', '5.1', '5.2', '5.3', '5.4', '5.5'],
+                 axisTick:{
+			        show:false
+			    },
+			    axisLine: {
+	               show:false
+	            },
+	            axisLabel: {
+	                textStyle: {
+	                    color: '#999'
+	                }
+	            },
+            }
+        ],
+
+        tooltip: {
+            textStyle: {
+                fontSize: "10",
+            },
+            padding: 10,
+            trigger: 'axis',
+            formatter: function (datas) {
+                
+                var res = datas[0].name.split('.')[0] +'月'+ datas[0].name.split('.')[1] + '日<br/>',
+                    val;
+                for (var i = 0, length = datas.length; i < length; i++) {
+                    val = (datas[i].value);
+                    res += val + '人';
+                }
+                return res;
+            },
+            backgroundColor: '#f9f9f9',
+            textStyle: {
+            	color: '#0C7CD7',
+            },
+            axisPointer: {
+            	lineStyle:{
+            		opacity: 0,
+            	}
+            },
+        },
+
+        yAxis: [
+        	{
+	            type: 'value',
+	            scale: true,
+	            position: 'left',
+	            offset: -10,
+	            axisLine: {
+	               show:false
+	            },
+	            axisLabel: {
+	                textStyle: {
+	                    color: '#999'
+	                }
+	            },
+	            splitLine: {
+	                lineStyle: {
+	                    color: ['#eee']
+	                }
+	            },
+	            axisTick:{
+			        show:false
+			    },
+
+        	},
+            
+
+        ],
+
+        series: [
+            {
+                type: 'line',
+                textStyle: {
+                    color: '#222',
+                    fontSize: "14"
+                },
+                itemStyle: {
+                    normal: {
+                        color: '#0BBA52',
+                        lineStyle: {
+                        	width: 1,
+			                color: "#0BBA52"
+			            }
+                    }
+                },
+                symbolSize: 4,
+				symbol: 'circle',
+                data: [45, 0, 45, 45, 0, 50]
+
+            },
+
+           
+        ],
+       
+
+    };
+	// 使用刚指定的配置项和数据显示图表。
+	myChart2.setOption(option2, true);
+</script>
+</body>
+</html>
